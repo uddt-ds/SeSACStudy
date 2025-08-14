@@ -16,7 +16,11 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         guard let scene = (scene as? UIWindowScene) else { return }
         window = UIWindow(windowScene: scene)
 
-        window?.rootViewController = ViewController()
+        let vc = SearchPhotoVC()
+        let nav = UINavigationController(rootViewController: vc)
+        nav.navigationBar.scrollEdgeAppearance = .init()
+
+        window?.rootViewController = nav
         window?.makeKeyAndVisible()
     }
 
