@@ -16,25 +16,31 @@ final class PhotoResultCell: UICollectionViewCell, BaseViewProtocol, ReusableVie
     }()
 
     private let starCountButton: UIButton = {
-        var configuration = UIButton.Configuration.plain()
+        var configuration = UIButton.Configuration.filled()
         let container = AttributeContainer([
             .foregroundColor : UIColor.white,
             .font : UIFont.systemFont(ofSize: 10)
         ])
         let attributedTitle = AttributedString("1000", attributes: container)
         configuration.attributedTitle = attributedTitle
-        configuration.image = UIImage(systemName: "star.fill")?.withTintColor(.yellow)
+        configuration.image = UIImage(systemName: "star.fill")
+        configuration.preferredSymbolConfigurationForImage = UIImage.SymbolConfiguration(pointSize: 13)
+        configuration.baseBackgroundColor = .gray
+        configuration.baseForegroundColor = .yellow
+        configuration.imagePadding = 4
         configuration.cornerStyle = .capsule
         let button = UIButton(configuration: configuration)
-        button.backgroundColor = .gray
         return button
     }()
 
     private let heartButton: UIButton = {
-        var configuration = UIButton.Configuration.plain()
-        configuration.image = UIImage(systemName: "heart")
+        var configuration = UIButton.Configuration.filled()
+        configuration.image = UIImage(systemName: "heart.fill")
+        configuration.preferredSymbolConfigurationForImage = UIImage.SymbolConfiguration(pointSize: 18)
+        configuration.background.cornerRadius = 20
+        configuration.baseBackgroundColor = .gray.withAlphaComponent(0.3)
+        configuration.baseForegroundColor = .white
         let button = UIButton(configuration: configuration)
-        button.layer.cornerRadius = 25
         button.clipsToBounds = true
         return button
     }()
@@ -62,13 +68,12 @@ final class PhotoResultCell: UICollectionViewCell, BaseViewProtocol, ReusableVie
         starCountButton.snp.makeConstraints { make in
             make.leading.bottom.equalTo(imageView).inset(20)
             make.height.equalTo(36)
-            make.width.lessThanOrEqualTo(50)
+            make.width.greaterThanOrEqualTo(40)
         }
 
         heartButton.snp.makeConstraints { make in
             make.trailing.bottom.equalTo(imageView).inset(20)
-            make.height.equalTo(44)
-            make.width.lessThanOrEqualTo(50)
+            make.size.equalTo(40)
         }
     }
 
