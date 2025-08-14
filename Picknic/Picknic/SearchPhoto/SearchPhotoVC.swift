@@ -48,7 +48,7 @@ enum ColorSet: String, CaseIterable {
     }
 }
 
-enum CollectionViewQuantity {
+enum ButtonCollectionViewQuantity: CaseIterable {
     case lineSpacing
     case itemSpacing
     case leadingInset
@@ -68,12 +68,32 @@ enum CollectionViewQuantity {
     }
 }
 
+enum PhotoCollectinoViewQuantity: CaseIterable {
+    case lineSpacing
+    case itemSpacing
+    case leadingInset
+    case trailingInset
+    case topInset
+    case bottomInset
+
+    var value: CGFloat {
+        switch self {
+        case .lineSpacing: return 4
+        case .itemSpacing: return 4
+        case .leadingInset: return 0
+        case .trailingInset: return 0
+        case .topInset: return 0
+        case .bottomInset: return 0
+        }
+    }
+}
+
 final class SearchPhotoVC: UIViewController, BaseViewProtocol {
 
     let searchController = UISearchController()
 
     private lazy var buttonCollectionView: UICollectionView = {
-        let view = UICollectionView(frame: .zero, collectionViewLayout: self.makeCollectinoViewLayout())
+        let view = UICollectionView(frame: .zero, collectionViewLayout: self.makeButtonCollectinoViewLayout())
         view.dataSource = self
         view.delegate = self
         view.register(SearchPhotoCell.self, forCellWithReuseIdentifier: SearchPhotoCell.identifier)
@@ -95,6 +115,15 @@ final class SearchPhotoVC: UIViewController, BaseViewProtocol {
         return label
     }()
 
+    private lazy var photoCollectionView: UICollectionView = {
+        let view = UICollectionView(frame: .zero, collectionViewLayout: self.makePhotoCollectionViewLayout())
+        view.dataSource = self
+        view.delegate = self
+        view.register(PhotoResultCell.self, forCellWithReuseIdentifier: PhotoResultCell.identifier)
+        view.showsVerticalScrollIndicator = false
+        return view
+    }()
+
     override func viewDidLoad() {
         super.viewDidLoad()
         configureHierarchy()
@@ -114,7 +143,7 @@ final class SearchPhotoVC: UIViewController, BaseViewProtocol {
     }
 
     func configureHierarchy() {
-        [buttonCollectionView, sortButton, phLabel].forEach { view.addSubview($0) }
+        [buttonCollectionView, sortButton, phLabel, photoCollectionView].forEach { view.addSubview($0) }
     }
 
     func configureLayout() {
@@ -134,14 +163,20 @@ final class SearchPhotoVC: UIViewController, BaseViewProtocol {
         phLabel.snp.makeConstraints { make in
             make.center.equalToSuperview()      // TODO: CollectionView 센터로 수정 필요
         }
+
+        photoCollectionView.snp.makeConstraints { make in
+            make.top.equalTo(buttonCollectionView.snp.bottom)
+            make.directionalHorizontalEdges.bottom.equalTo(view.safeAreaLayoutGuide)
+        }
     }
 
     func setupNav() {
         navigationItem.title = "SEARCH PHOTO"
     }
 
-    func makeCollectinoViewLayout() -> UICollectionViewFlowLayout {
-        typealias quantity = CollectionViewQuantity
+    func makeButtonCollectinoViewLayout() -> UICollectionViewFlowLayout {
+        typealias quantity = ButtonCollectionViewQuantity
+
         let layout = UICollectionViewFlowLayout()
         layout.scrollDirection = .horizontal
         layout.minimumLineSpacing = quantity.lineSpacing.value
@@ -153,6 +188,22 @@ final class SearchPhotoVC: UIViewController, BaseViewProtocol {
         layout.itemSize = .init(width: 60, height: 32) // TODO: 삭제 필요. width 동적으로 가져와야함
         return layout
     }
+
+    func makePhotoCollectionViewLayout() -> UICollectionViewFlowLayout {
+        typealias quantity = PhotoCollectinoViewQuantity
+
+        let layout = UICollectionViewFlowLayout()
+        layout.scrollDirection = .vertical
+        layout.minimumLineSpacing = quantity.lineSpacing.value
+        layout.minimumInteritemSpacing = quantity.itemSpacing.value
+        layout.sectionInset = .init(top: quantity.topInset.value,
+                                    left: quantity.leadingInset.value,
+                                    bottom: quantity.bottomInset.value,
+                                    right: quantity.trailingInset.value)
+
+        layout.itemSize = .init(width: 196, height: 300)  //TODO: 삭제 필요. viewDidLayoutSubviews 단계에서 주입
+        return layout
+    }
 }
 
 extension SearchPhotoVC: UICollectionViewDelegate, UICollectionViewDataSource {
@@ -161,10 +212,16 @@ extension SearchPhotoVC: UICollectionViewDelegate, UICollectionViewDataSource {
     }
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: SearchPhotoCell.identifier, for: indexPath) as? SearchPhotoCell else { return .init() }
-        return cell
+        if collectionView == buttonCollectionView {
+            guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: SearchPhotoCell.identifier, for: indexPath) as? SearchPhotoCell else { return .init() }
+            return cell
+        } else if collectionView == photoCollectionView {
+            guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: PhotoResultCell.identifier, for: indexPath) as? PhotoResultCell else { return .init() }
+            return cell
+        }
+
+        return .init()
     }
-    
 
 }
 
