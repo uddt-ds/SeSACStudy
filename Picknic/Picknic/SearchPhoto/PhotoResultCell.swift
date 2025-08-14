@@ -11,27 +11,12 @@ final class PhotoResultCell: UICollectionViewCell, BaseViewProtocol, ReusableVie
 
     private let imageView: UIImageView = {
         let imageView = UIImageView()
+        imageView.isUserInteractionEnabled = true
         imageView.contentMode = .scaleAspectFill
         return imageView
     }()
 
-    private let starCountButton: UIButton = {
-        var configuration = UIButton.Configuration.filled()
-        let container = AttributeContainer([
-            .foregroundColor : UIColor.white,
-            .font : UIFont.systemFont(ofSize: 10)
-        ])
-        let attributedTitle = AttributedString("1000", attributes: container)
-        configuration.attributedTitle = attributedTitle
-        configuration.image = UIImage(systemName: "star.fill")
-        configuration.preferredSymbolConfigurationForImage = UIImage.SymbolConfiguration(pointSize: 13)
-        configuration.baseBackgroundColor = .gray
-        configuration.baseForegroundColor = .yellow
-        configuration.imagePadding = 4
-        configuration.cornerStyle = .capsule
-        let button = UIButton(configuration: configuration)
-        return button
-    }()
+    private let starCountButton = StarButton()
 
     private let heartButton: UIButton = {
         var configuration = UIButton.Configuration.filled()
