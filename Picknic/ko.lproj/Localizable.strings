@@ -1,0 +1,18 @@
+/* 
+  Localizable.strings
+  Picknic
+
+  Created by Lee on 8/15/25.
+  
+*/
+"invalidURL" = "잘못된 URL입니다";
+"failDecoding" = "디코딩 에러입니다";
+"noData" = "데이터가 없습니다";
+
+"badRequest" = "잘못된 요청입니다. 파라미터를 확인해주세요";
+"unauthorized" = "유효하지 않은 인증입니다. 토큰을 확인해주세요";
+"forbidden" = "요청 권한이 없습니다";
+"notFound" = "요청된 리소스가 존재하지 않습니다";
+"serverError" = "서버 에러입니다";
+"serverError2" = "서버 에러입니다";
+"unknownError" = "알 수 없는 에러입니다";

@@ -1,0 +1,14 @@
+/* 
+  Localizable.strings
+  Picknic
+
+  Created by Lee on 8/15/25.
+  
+*/
+"badRequest" = "The request was unacceptable, often due to missing a required parameter";
+"unauthorized" = "Invalid Access Token";
+"forbidden" = "Missing permissions to perform request";
+"notFound" = "The requested resource doesn’t exist";
+"serverError" = "Something went wrong on our end";
+"serverError2" = "Something went wrong on our end";
+"unknownError" = "An unknown error occurred.";
