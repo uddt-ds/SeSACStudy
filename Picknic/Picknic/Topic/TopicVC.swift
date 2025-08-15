@@ -92,7 +92,6 @@ final class TopicVC: UIViewController, BaseViewProtocol {
         configureHierarchy()
         configureLayout()
         configureView()
-        fetch()
 
         navigationController?.navigationBar.isHidden = true
     }

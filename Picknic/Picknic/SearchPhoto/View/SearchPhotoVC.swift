@@ -92,7 +92,7 @@ final class SearchPhotoVC: UIViewController, BaseViewProtocol {
 
     let searchController = UISearchController()
 
-    let networkManager = NetworkManager.shared
+    let viewModel = SearchPhotoViewModel()
 
     private lazy var buttonCollectionView: UICollectionView = {
         let view = UICollectionView(frame: .zero, collectionViewLayout: self.makeButtonCollectinoViewLayout())
@@ -133,14 +133,14 @@ final class SearchPhotoVC: UIViewController, BaseViewProtocol {
         configureView()
         setupNav()
         setupSearchController()
-        fetchData()
+        bindViewModel()
     }
 
 
     func setupSearchController() {
         searchController.searchBar.placeholder = "키워드 검색"
-        searchController.delegate = self
         searchController.automaticallyShowsCancelButton = false
+        searchController.searchBar.delegate = self
         searchController.hidesNavigationBarDuringPresentation = false
         self.navigationItem.searchController = searchController
     }
@@ -170,6 +170,13 @@ final class SearchPhotoVC: UIViewController, BaseViewProtocol {
         photoCollectionView.snp.makeConstraints { make in
             make.top.equalTo(buttonCollectionView.snp.bottom)
             make.directionalHorizontalEdges.bottom.equalTo(view.safeAreaLayoutGuide)
+        }
+    }
+
+    func bindViewModel() {
+        viewModel.output.searchResult.lazyBind { response in
+            guard let response else { return }
+            print(response)
         }
     }
 
@@ -207,17 +214,6 @@ final class SearchPhotoVC: UIViewController, BaseViewProtocol {
         layout.itemSize = .init(width: 196, height: 300)  //TODO: 삭제 필요. viewDidLayoutSubviews 단계에서 주입
         return layout
     }
-
-    func fetchData() {
-        networkManager.callRequest(api: .search(query: "sky", page: 1, perpage: 20, orderBy: OrderBy.relevant.rawValue, color: ColorSet.black.rawValue), type: SearchPhoto.self) { response in
-            switch response {
-            case .success(let model):
-                print(model)
-            case .failure(let error):
-                print(error.localizedDescription)
-            }
-        }
-    }
 }
 
 extension SearchPhotoVC: UICollectionViewDelegate, UICollectionViewDataSource {
@@ -239,6 +235,8 @@ extension SearchPhotoVC: UICollectionViewDelegate, UICollectionViewDataSource {
 
 }
 
-extension SearchPhotoVC: UISearchControllerDelegate  {
-
+extension SearchPhotoVC: UISearchBarDelegate  {
+    func searchBarTextDidEndEditing(_ searchBar: UISearchBar) {
+        
+    }
 }
