@@ -1,5 +1,5 @@
 //
-//  SearchPhotoModel.swift
+//  PhotoResultModel.swift
 //  Picknic
 //
 //  Created by Lee on 8/15/25.
@@ -7,24 +7,12 @@
 
 import Foundation
 
-struct SearchPhotoModel: Decodable {
-    let total: Int
-    let totalPages: Int
-    let results: [SearchResults]
-
-    enum CodingKeys: String, CodingKey {
-        case total
-        case totalPages = "total_pages"
-        case results
-    }
-}
-
-struct SearchResults: Decodable {
+struct PhotoResult: Decodable {
     let id: String
     let createdAt: String
     let width: Int
     let height: Int
-    let urls: SearchURL
+    let urls: PhotoURL
     let likes: Int
     let user: User
 
@@ -39,7 +27,7 @@ struct SearchResults: Decodable {
     }
 }
 
-struct SearchURL: Decodable {
+struct PhotoURL: Decodable {
     let raw: String
     let small: String
 }

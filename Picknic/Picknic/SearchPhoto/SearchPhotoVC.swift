@@ -209,7 +209,7 @@ final class SearchPhotoVC: UIViewController, BaseViewProtocol {
     }
 
     func fetchData() {
-        networkManager.callRequest(api: .search(query: "sky", page: 1, perpage: 20, orderBy: OrderBy.relevant.rawValue, color: ColorSet.black.rawValue), type: SearchPhotoModel.self) { response in
+        networkManager.callRequest(api: .search(query: "sky", page: 1, perpage: 20, orderBy: OrderBy.relevant.rawValue, color: ColorSet.black.rawValue), type: SearchPhoto.self) { response in
             switch response {
             case .success(let model):
                 print(model)

@@ -10,6 +10,8 @@ import SnapKit
 
 final class TopicVC: UIViewController, BaseViewProtocol {
 
+    let networkManager = NetworkManager.shared
+
     private let imageView: UIImageView = {
         let imageView = UIImageView()
         imageView.contentMode = .scaleAspectFill
@@ -90,6 +92,7 @@ final class TopicVC: UIViewController, BaseViewProtocol {
         configureHierarchy()
         configureLayout()
         configureView()
+        fetch()
 
         navigationController?.navigationBar.isHidden = true
     }
@@ -161,6 +164,17 @@ final class TopicVC: UIViewController, BaseViewProtocol {
                                     right: quantity.trailingInset.value)
         layout.itemSize = .init(width: 150, height: 200) // TODO: 삭제 필요. width 동적으로 가져와야함
         return layout
+    }
+
+    func fetch() {
+        networkManager.callRequest(api: .topic(topicID: TopicID.business_work.rawValue, page: 1, perpage: 10), type: [PhotoResult].self) { response in
+            switch response {
+            case .success(let data):
+                print(data)
+            case .failure(let error):
+                print(error.localizedDescription)
+            }
+        }
     }
 }
 
