@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import Kingfisher
 
 final class PhotoResultCell: UICollectionViewCell, BaseViewProtocol, ReusableViewProtocol {
 
@@ -67,4 +68,15 @@ final class PhotoResultCell: UICollectionViewCell, BaseViewProtocol, ReusableVie
         contentView.backgroundColor = .clear
     }
 
+    func configureCell(with data: PhotoResult) {
+        guard let url = URL(string: data.urls.raw) else { return }
+        imageView.kf.setImage(with: url)
+
+        let container = AttributeContainer([
+            .foregroundColor : UIColor.white,
+            .font : UIFont.systemFont(ofSize: 10)
+        ])
+        let attributedTitle = AttributedString("\(data.likes)", attributes: container)
+        starCountButton.configuration?.attributedTitle = attributedTitle
+    }
 }

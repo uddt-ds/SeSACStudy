@@ -30,26 +30,30 @@ class SearchPhotoViewModel {
     init() {
         input = Input()
         output = Output()
-        validate()
-    }
 
-    func validate() {
-        input.searchKeyword.lazyBind { [weak self] text in
+        input.searchKeyword.bind { [weak self] text in
             guard let self else { return }
-
-            guard let text, text.count < 0 else {
-                self.output.invalidInput.value = "검색어를 입력해주세요"
-                return
+            if self.validate(text) {
+                fetch()
             }
         }
     }
 
-    func fetchData() {
+    private func validate(_ text: String?) -> Bool {
+        guard let text = text, text.trimmingCharacters(in: .whitespaces).count > 0 else {
+            output.invalidInput.value = "키워드를 입력해주세요"
+            return false
+        }
+        return true
+    }
+
+    private func fetch() {
         guard let keyword = input.searchKeyword.value else { return }
         let page = input.page.value
         let perpage = 20
         let orderBy = input.sortType.value
-        guard let color = input.colorType.value else { return }
+        let color = input.colorType.value
+        print(color)
         networkManager.callRequest(api: .search(query: keyword, page: page, perpage: perpage, orderBy: orderBy, color: color), type: SearchPhoto.self) { [weak self] response in
             guard let self else { return }
             switch response {

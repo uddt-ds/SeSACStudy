@@ -94,6 +94,8 @@ final class SearchPhotoVC: UIViewController, BaseViewProtocol {
 
     let viewModel = SearchPhotoViewModel()
 
+    var searchPhotoData: SearchPhoto = .init(total: 0, totalPages: 0, results: [])
+
     private lazy var buttonCollectionView: UICollectionView = {
         let view = UICollectionView(frame: .zero, collectionViewLayout: self.makeButtonCollectinoViewLayout())
         view.dataSource = self
@@ -174,9 +176,11 @@ final class SearchPhotoVC: UIViewController, BaseViewProtocol {
     }
 
     func bindViewModel() {
-        viewModel.output.searchResult.lazyBind { response in
+        viewModel.output.searchResult.lazyBind { [weak self] response in
+            guard let self else { return }
             guard let response else { return }
-            print(response)
+            self.searchPhotoData = response
+            self.photoCollectionView.reloadData()
         }
     }
 
@@ -218,25 +222,34 @@ final class SearchPhotoVC: UIViewController, BaseViewProtocol {
 
 extension SearchPhotoVC: UICollectionViewDelegate, UICollectionViewDataSource {
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        return 10
+        switch collectionView {
+        case buttonCollectionView:
+            return 10
+        case photoCollectionView:
+            return searchPhotoData.results.count
+        default:
+            return 0
+        }
     }
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        if collectionView == buttonCollectionView {
+        switch collectionView {
+        case buttonCollectionView:
             guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: SearchPhotoCell.identifier, for: indexPath) as? SearchPhotoCell else { return .init() }
             return cell
-        } else if collectionView == photoCollectionView {
+        case photoCollectionView:
             guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: PhotoResultCell.identifier, for: indexPath) as? PhotoResultCell else { return .init() }
+            cell.configureCell(with: searchPhotoData.results[indexPath.item])
             return cell
+        default:
+            return .init()
         }
-
-        return .init()
     }
 
 }
 
 extension SearchPhotoVC: UISearchBarDelegate  {
     func searchBarTextDidEndEditing(_ searchBar: UISearchBar) {
-        
+        viewModel.input.searchKeyword.value = searchBar.text
     }
 }
