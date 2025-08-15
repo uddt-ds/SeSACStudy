@@ -175,6 +175,8 @@
 /* Begin XCBuildConfiguration section */
 		9B5087632E4DBAAC00AA911B /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReferenceAnchor = 9B5087512E4DBAAB00AA911B /* Picknic */;
+			baseConfigurationReferenceRelativePath = Secret/Config.xcconfig;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;

@@ -92,6 +92,8 @@ final class SearchPhotoVC: UIViewController, BaseViewProtocol {
 
     let searchController = UISearchController()
 
+    let networkManager = NetworkManager.shared
+
     private lazy var buttonCollectionView: UICollectionView = {
         let view = UICollectionView(frame: .zero, collectionViewLayout: self.makeButtonCollectinoViewLayout())
         view.dataSource = self
@@ -131,6 +133,7 @@ final class SearchPhotoVC: UIViewController, BaseViewProtocol {
         configureView()
         setupNav()
         setupSearchController()
+        fetchData()
     }
 
 
@@ -203,6 +206,17 @@ final class SearchPhotoVC: UIViewController, BaseViewProtocol {
 
         layout.itemSize = .init(width: 196, height: 300)  //TODO: 삭제 필요. viewDidLayoutSubviews 단계에서 주입
         return layout
+    }
+
+    func fetchData() {
+        networkManager.callRequest(api: .search(query: "sky", page: 1, perpage: 20, orderBy: OrderBy.relevant.rawValue, color: ColorSet.black.rawValue), type: SearchPhotoModel.self) { response in
+            switch response {
+            case .success(let model):
+                print(model)
+            case .failure(let error):
+                print(error.localizedDescription)
+            }
+        }
     }
 }
 
