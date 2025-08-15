@@ -16,11 +16,14 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         guard let scene = (scene as? UIWindowScene) else { return }
         window = UIWindow(windowScene: scene)
 
-        let vc = SearchPhotoVC()
-        let nav = UINavigationController(rootViewController: vc)
-        nav.navigationBar.scrollEdgeAppearance = .init()
 
-        window?.rootViewController = nav
+        UITabBar.appearance().scrollEdgeAppearance = .init()
+        UITabBar.appearance().tintColor = .gray
+        UITabBar.appearance().barTintColor = .white
+
+        let tabBarController = TabBarController()
+
+        window?.rootViewController = tabBarController
         window?.makeKeyAndVisible()
     }
 

@@ -88,7 +88,7 @@ final class DetailPhotoVC: UIViewController, BaseViewProtocol {
         return label
     }()
 
-    private let sizeDetailLabel: UILabel = {
+    private let sizeDetailLabel : UILabel = {
         let label = UILabel()
         label.text = "0000 x 0000"
         label.font = .systemFont(ofSize: 14)

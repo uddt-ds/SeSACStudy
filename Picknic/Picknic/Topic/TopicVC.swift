@@ -90,6 +90,8 @@ final class TopicVC: UIViewController, BaseViewProtocol {
         configureHierarchy()
         configureLayout()
         configureView()
+
+        navigationController?.navigationBar.isHidden = true
     }
 
     func configureHierarchy() {
@@ -98,7 +100,7 @@ final class TopicVC: UIViewController, BaseViewProtocol {
 
     func configureLayout() {
         imageView.snp.makeConstraints { make in
-            make.top.equalTo(view.safeAreaLayoutGuide)
+            make.top.equalTo(view.safeAreaLayoutGuide).offset(20)
             make.trailing.equalTo(view.safeAreaLayoutGuide).offset(-20)
             make.size.equalTo(36)
         }
