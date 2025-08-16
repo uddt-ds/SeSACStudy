@@ -90,11 +90,11 @@ enum PhotoCollectinoViewQuantity: CaseIterable {
 
 final class SearchPhotoVC: UIViewController, BaseViewProtocol {
 
-    let searchController = UISearchController()
+    private let searchController = UISearchController()
 
-    let viewModel = SearchPhotoViewModel()
+    private let viewModel = SearchPhotoViewModel()
 
-    var searchPhotoData: SearchPhoto = .init(total: 0, totalPages: 0, results: [])
+    private var searchPhotoData: SearchPhoto = .init(total: 0, totalPages: 0, results: [])
 
     private lazy var buttonCollectionView: UICollectionView = {
         let view = UICollectionView(frame: .zero, collectionViewLayout: self.makeButtonCollectinoViewLayout())
@@ -110,15 +110,6 @@ final class SearchPhotoVC: UIViewController, BaseViewProtocol {
         return button
     }()
 
-    private let phLabel: UILabel = {
-        let label = UILabel()
-        label.text = "사진을 검색해보세요"
-        label.textColor = .black
-        label.font = .boldSystemFont(ofSize: 16)
-        label.textAlignment = .center
-        return label
-    }()
-
     private lazy var photoCollectionView: UICollectionView = {
         let view = UICollectionView(frame: .zero, collectionViewLayout: self.makePhotoCollectionViewLayout())
         view.dataSource = self
@@ -126,6 +117,15 @@ final class SearchPhotoVC: UIViewController, BaseViewProtocol {
         view.register(PhotoResultCell.self, forCellWithReuseIdentifier: PhotoResultCell.identifier)
         view.showsVerticalScrollIndicator = false
         return view
+    }()
+
+    private let phLabel: UILabel = {
+        let label = UILabel()
+        label.text = "사진을 검색해보세요"
+        label.textColor = .black
+        label.font = .boldSystemFont(ofSize: 16)
+        label.textAlignment = .center
+        return label
     }()
 
     override func viewDidLoad() {
@@ -136,10 +136,21 @@ final class SearchPhotoVC: UIViewController, BaseViewProtocol {
         setupNav()
         setupSearchController()
         bindViewModel()
+
+        sortButton.isToggle = { [weak self] isToggle in
+            guard let self else { return }
+            print(isToggle)
+            if isToggle {
+                self.viewModel.input.sortType.value = OrderBy.latest.rawValue
+                self.photoCollectionView.reloadData()
+            } else {
+                self.viewModel.input.sortType.value = OrderBy.relevant.rawValue
+                self.photoCollectionView.reloadData()
+            }
+        }
     }
 
-
-    func setupSearchController() {
+    private func setupSearchController() {
         searchController.searchBar.placeholder = "키워드 검색"
         searchController.automaticallyShowsCancelButton = false
         searchController.searchBar.delegate = self
@@ -148,7 +159,7 @@ final class SearchPhotoVC: UIViewController, BaseViewProtocol {
     }
 
     func configureHierarchy() {
-        [buttonCollectionView, sortButton, phLabel, photoCollectionView].forEach { view.addSubview($0) }
+        [buttonCollectionView, sortButton, photoCollectionView, phLabel].forEach { view.addSubview($0) }
     }
 
     func configureLayout() {
@@ -166,7 +177,7 @@ final class SearchPhotoVC: UIViewController, BaseViewProtocol {
         }
 
         phLabel.snp.makeConstraints { make in
-            make.center.equalToSuperview()      // TODO: CollectionView 센터로 수정 필요
+            make.center.equalTo(photoCollectionView.snp.center)
         }
 
         photoCollectionView.snp.makeConstraints { make in
@@ -175,20 +186,39 @@ final class SearchPhotoVC: UIViewController, BaseViewProtocol {
         }
     }
 
-    func bindViewModel() {
+    private func bindViewModel() {
         viewModel.output.searchResult.lazyBind { [weak self] response in
             guard let self else { return }
             guard let response else { return }
             self.searchPhotoData = response
             self.photoCollectionView.reloadData()
+            showPlaceHolderLabel()
+        }
+
+        viewModel.output.scrollGoToTop.lazyBind { [weak self] _ in
+            guard let self else { return }
+            if searchPhotoData.results.count != 0 {
+                self.photoCollectionView.scrollToItem(at: IndexPath(item: 0, section: 0), at: .top, animated: true)
+            }
         }
     }
 
-    func setupNav() {
+    // result도 없고, searchButton도 눌렀으면 "검색 결과가 없어요"
+    // result만 없으면 검색어를 입력해주세요
+    private func showPlaceHolderLabel() {
+        if searchPhotoData.results.count == 0 {
+            phLabel.text = "검색 결과가 없어요"
+            phLabel.isHidden = false
+        } else {
+            phLabel.isHidden = true
+        }
+    }
+
+    private func setupNav() {
         navigationItem.title = "SEARCH PHOTO"
     }
 
-    func makeButtonCollectinoViewLayout() -> UICollectionViewFlowLayout {
+    private func makeButtonCollectinoViewLayout() -> UICollectionViewFlowLayout {
         typealias quantity = ButtonCollectionViewQuantity
 
         let layout = UICollectionViewFlowLayout()
@@ -203,7 +233,7 @@ final class SearchPhotoVC: UIViewController, BaseViewProtocol {
         return layout
     }
 
-    func makePhotoCollectionViewLayout() -> UICollectionViewFlowLayout {
+    private func makePhotoCollectionViewLayout() -> UICollectionViewFlowLayout {
         typealias quantity = PhotoCollectinoViewQuantity
 
         let layout = UICollectionViewFlowLayout()
@@ -246,6 +276,35 @@ extension SearchPhotoVC: UICollectionViewDelegate, UICollectionViewDataSource {
         }
     }
 
+
+    func scrollViewDidScroll(_ scrollView: UIScrollView) {
+        let contentSizeHeight = self.photoCollectionView.contentSize.height
+        let collectionViewHeight = self.photoCollectionView.bounds.height
+        let offset = scrollView.contentOffset
+//
+//        guard contentSizeHeight > collectionViewHeight else { return
+//            viewModel.isInfiniteScroll = false
+//        }
+
+        // TODO: 페이지 2개씩 올라가는 문제 해결 필요
+        if offset.y > (contentSizeHeight - collectionViewHeight - 180), !viewModel.isInfiniteScroll {
+            viewModel.isInfiniteScroll = true
+            viewModel.input.scrollDidChangeTrigger.value = ()
+        }
+    }
+
+    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        switch collectionView {
+        case buttonCollectionView:
+            print("buttonTapped")
+        case photoCollectionView:
+            let viewModel = DetailPhotoViewModel(photoId: searchPhotoData.results[indexPath.item].id)
+            let vc = DetailPhotoVC(viewModel: viewModel)
+            navigationController?.pushViewController(vc, animated: true)
+        default:
+            return
+        }
+    }
 }
 
 extension SearchPhotoVC: UISearchBarDelegate  {

@@ -20,6 +20,7 @@ final class ToggleButton: UIButton {
         setImage(UIImage(systemName: "text.badge.checkmark"), for: .normal)
         tintColor = .black
         backgroundColor = .white
+        bind()
     }
 
     @available(*, unavailable)

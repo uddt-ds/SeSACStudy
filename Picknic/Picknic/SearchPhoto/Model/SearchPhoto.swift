@@ -8,9 +8,9 @@
 import Foundation
 
 struct SearchPhoto: Decodable {
-    let total: Int
-    let totalPages: Int
-    let results: [PhotoResult]
+    var total: Int
+    var totalPages: Int
+    var results: [PhotoResult]
 
     enum CodingKeys: String, CodingKey {
         case total
