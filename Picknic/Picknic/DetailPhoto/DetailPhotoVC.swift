@@ -6,8 +6,16 @@
 //
 
 import UIKit
+import SnapKit
 
+/*
+ TODO: 데이터 핸들링 리팩토링 필요
+ */
 final class DetailPhotoVC: UIViewController, BaseViewProtocol {
+
+    var viewModel: DetailPhotoViewModel
+
+    var statisticData: Statistics = .init(id: "", downloads: .init(total: 0, historical: .init(values: [])), views: .init(total: 0, historical: .init(values: [])))
 
     private let profileImageView: UIImageView = {
         let imageView = UIImageView()
@@ -39,7 +47,7 @@ final class DetailPhotoVC: UIViewController, BaseViewProtocol {
         stackView.axis = .vertical
         stackView.spacing = 2
         stackView.alignment = .leading
-        stackView.distribution = .fillProportionally
+        stackView.distribution = .fill
         return stackView
     }()
 
@@ -62,7 +70,7 @@ final class DetailPhotoVC: UIViewController, BaseViewProtocol {
     private lazy var topStackView: UIStackView = {
         let stackView = UIStackView(arrangedSubviews: [profileStackView, heartButton])
         stackView.axis = .horizontal
-        stackView.distribution = .equalCentering
+        stackView.distribution = .fill
         return stackView
     }()
 
@@ -168,12 +176,39 @@ final class DetailPhotoVC: UIViewController, BaseViewProtocol {
         return imageView
     }()
 
+    init(viewModel: DetailPhotoViewModel) {
+        self.viewModel = viewModel
+        super.init(nibName: nil, bundle: nil)
+    }
+
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+
     override func viewDidLoad() {
         super.viewDidLoad()
         configureHierarchy()
         configureTopStackViewSubViewLayout()
         configureLayout()
         configureView()
+        bindViewModel()
+    }
+
+    func bindViewModel() {
+        viewModel.output.statisticsData.bind { [weak self] data in
+            guard let self else { return }
+            guard let data else {
+                print("데이터가 없습니다")
+                return
+            }
+
+            self.statisticData = data
+            guard let value = viewModel.input.photoResultData.value else {
+                return
+            }
+
+            configureUI(with: value, statisticsData: data)
+        }
     }
 
     func configureHierarchy() {
@@ -181,6 +216,9 @@ final class DetailPhotoVC: UIViewController, BaseViewProtocol {
     }
 
     func configureTopStackViewSubViewLayout() {
+
+        profileLabelStackView.setContentHuggingPriority(.defaultLow, for: .horizontal)
+
         profileImageView.snp.makeConstraints { make in
             make.size.equalTo(32)
         }
@@ -225,6 +263,23 @@ final class DetailPhotoVC: UIViewController, BaseViewProtocol {
             make.leading.equalTo(infoHeaderLabel).offset(100)
             make.bottom.equalTo(view.safeAreaLayoutGuide)
         }
+    }
+
+    func configureUI(with data: PhotoResult, statisticsData: Statistics) {
+        guard let url = URL(string: data.user.profileImage.medium) else { return }
+        profileImageView.kf.setImage(with: url)
+        profileNameLabel.text = data.user.name
+
+        // TODO: 데이터 가공 필요
+        postDateLabel.text = data.createdAt
+
+        guard let photoUrl = URL(string: data.urls.small) else { return }
+        photoImageView.kf.setImage(with: photoUrl)
+
+        // TODO: 데이터 가공 필요
+        sizeDetailLabel.text = "\(data.height) x \(data.width)"
+        downLoadDetailLabel.text = "\(statisticsData.downloads.total)"
+        totalViewsDetailLabel.text = "\(data.likes)"
     }
 }
 

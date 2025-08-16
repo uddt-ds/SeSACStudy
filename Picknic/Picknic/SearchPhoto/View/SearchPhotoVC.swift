@@ -298,7 +298,7 @@ extension SearchPhotoVC: UICollectionViewDelegate, UICollectionViewDataSource {
         case buttonCollectionView:
             print("buttonTapped")
         case photoCollectionView:
-            let viewModel = DetailPhotoViewModel(photoId: searchPhotoData.results[indexPath.item].id)
+            let viewModel = DetailPhotoViewModel(photoData: searchPhotoData.results[indexPath.item])
             let vc = DetailPhotoVC(viewModel: viewModel)
             navigationController?.pushViewController(vc, animated: true)
         default:
