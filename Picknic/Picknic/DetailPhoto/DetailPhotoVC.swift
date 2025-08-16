@@ -279,7 +279,7 @@ final class DetailPhotoVC: UIViewController, BaseViewProtocol {
         // TODO: 데이터 가공 필요
         sizeDetailLabel.text = "\(data.height) x \(data.width)"
         downLoadDetailLabel.text = "\(statisticsData.downloads.total)"
-        totalViewsDetailLabel.text = "\(data.likes)"
+        totalViewsDetailLabel.text = "\(data.formatterLikes)"
     }
 }
 

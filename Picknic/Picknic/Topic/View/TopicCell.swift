@@ -62,7 +62,7 @@ final class TopicCell: UICollectionViewCell, ReusableViewProtocol, BaseViewProto
             .foregroundColor : UIColor.white,
             .font : UIFont.systemFont(ofSize: 10)
         ])
-        let attributedTitle = AttributedString("\(data.likes)", attributes: container)
+        let attributedTitle = AttributedString("\(data.formatterLikes)", attributes: container)
         button.configuration?.attributedTitle = attributedTitle
     }
 }

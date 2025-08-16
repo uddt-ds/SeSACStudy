@@ -76,7 +76,7 @@ final class PhotoResultCell: UICollectionViewCell, BaseViewProtocol, ReusableVie
             .foregroundColor : UIColor.white,
             .font : UIFont.systemFont(ofSize: 10)
         ])
-        let attributedTitle = AttributedString("\(data.likes)", attributes: container)
+        let attributedTitle = AttributedString("\(data.formatterLikes)", attributes: container)
         starCountButton.configuration?.attributedTitle = attributedTitle
     }
 }

@@ -27,6 +27,12 @@ struct PhotoResult: Decodable {
     }
 }
 
+extension PhotoResult {
+    var formatterLikes: String {
+        return NumberFormatManager.shared.getDemicalNum(likes)
+    }
+}
+
 struct PhotoURL: Decodable {
     let raw: String
     let small: String
