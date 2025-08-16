@@ -26,6 +26,12 @@ final class TopicVC: UIViewController, BaseViewProtocol {
         return label
     }()
 
+    private let headerBackgroundView: UIView = {
+        let view = UIView()
+        view.backgroundColor = .white
+        return view
+    }()
+
     private let firstTopicLabel: UILabel = {
         let label = UILabel()
         label.text = TopicTitle.first.rawValue
@@ -119,12 +125,26 @@ final class TopicVC: UIViewController, BaseViewProtocol {
 
         scrollView.addSubview(contentView)
 
-        [headerLabel, firstTopicLabel, firstTopicCollectionView, secondTopicLabel, secondTopicCollectionView, thirdTopicLabel, thirdTopicCollectionView].forEach { view.addSubview($0) }
+        [headerBackgroundView, headerLabel].forEach { view.addSubview($0) }
+
+        [firstTopicLabel, firstTopicCollectionView, secondTopicLabel, secondTopicCollectionView, thirdTopicLabel, thirdTopicCollectionView].forEach { contentView.addSubview($0) }
     }
 
     func configureLayout() {
         scrollView.snp.makeConstraints { make in
-            make.directionalEdges.equalToSuperview()
+            make.top.equalTo(headerBackgroundView.snp.bottom)
+            make.leading.trailing.bottom.equalToSuperview()
+        }
+
+        contentView.snp.makeConstraints { make in
+            make.edges.equalToSuperview()
+            make.width.equalTo(scrollView.snp.width)
+        }
+
+        headerBackgroundView.snp.makeConstraints { make in
+            make.top.equalTo(view.safeAreaLayoutGuide)
+            make.directionalHorizontalEdges.equalToSuperview()
+            make.directionalVerticalEdges.equalTo(headerLabel.snp.directionalVerticalEdges).inset(-10)
         }
 
         headerLabel.snp.makeConstraints { make in
@@ -134,7 +154,7 @@ final class TopicVC: UIViewController, BaseViewProtocol {
         }
 
         firstTopicLabel.snp.makeConstraints { make in
-            make.top.equalTo(headerLabel.snp.bottom).offset(30)
+            make.top.equalToSuperview().offset(20)
             make.leading.equalTo(headerLabel)
             make.height.equalTo(16)
         }
@@ -167,6 +187,7 @@ final class TopicVC: UIViewController, BaseViewProtocol {
             make.top.equalTo(thirdTopicLabel.snp.bottom).offset(10)
             make.directionalHorizontalEdges.equalTo(view.safeAreaLayoutGuide)
             make.height.equalTo(220)
+            make.bottom.equalToSuperview().offset(-20)
         }
     }
 
