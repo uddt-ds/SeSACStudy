@@ -10,7 +10,11 @@ import SnapKit
 
 final class TopicVC: UIViewController, BaseViewProtocol {
 
-    let networkManager = NetworkManager.shared
+    let viewModel = TopicViewModel()
+
+    var firstTopicData: [PhotoResult] = []
+    var secondTopicData: [PhotoResult] = []
+    var thirdTopicData: [PhotoResult] = []
 
     private let imageView: UIImageView = {
         let imageView = UIImageView()
@@ -86,7 +90,6 @@ final class TopicVC: UIViewController, BaseViewProtocol {
         return collectionView
     }()
 
-
     override func viewDidLoad() {
         super.viewDidLoad()
         configureHierarchy()
@@ -94,6 +97,27 @@ final class TopicVC: UIViewController, BaseViewProtocol {
         configureView()
 
         navigationController?.navigationBar.isHidden = true
+
+        bindViewModel()
+    }
+
+    private func bindViewModel() {
+        viewModel.input.viewDidLoadTrigger.value = ()
+
+        viewModel.output.firstTopicData.lazyBind { data in
+            self.firstTopicData = data
+            self.firstTopicCollectionView.reloadData()
+        }
+
+        viewModel.output.secondTopicData.lazyBind { data in
+            self.secondTopicData = data
+            self.secondTopicCollectionView.reloadData()
+        }
+
+        viewModel.output.thirdTopicData.lazyBind { data in
+            self.thirdTopicData = data
+            self.thirdTopicCollectionView.reloadData()
+        }
     }
 
     func configureHierarchy() {
@@ -164,27 +188,40 @@ final class TopicVC: UIViewController, BaseViewProtocol {
         layout.itemSize = .init(width: 150, height: 200) // TODO: 삭제 필요. width 동적으로 가져와야함
         return layout
     }
-
-    func fetch() {
-        networkManager.callRequest(api: .topic(topicID: TopicID.business_work.rawValue, page: 1, perpage: 10), type: [PhotoResult].self) { response in
-            switch response {
-            case .success(let data):
-                print(data)
-            case .failure(let error):
-                print(error.localizedDescription)
-            }
-        }
-    }
 }
 
 extension TopicVC: UICollectionViewDelegate, UICollectionViewDataSource {
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        return 10
+        switch collectionView {
+        case firstTopicCollectionView:
+            return firstTopicData.count
+        case secondTopicCollectionView:
+            return secondTopicData.count
+        case thirdTopicCollectionView:
+            return thirdTopicData.count
+        default:
+            return 0
+        }
     }
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: TopicCell.identifier, for: indexPath) as? TopicCell else { return .init() }
-        return cell
+        switch collectionView {
+        case firstTopicCollectionView:
+            guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: TopicCell.identifier, for: indexPath) as? TopicCell else { return .init() }
+            print(#function, firstTopicData)
+            cell.configureCell(with: firstTopicData[indexPath.item])
+            return cell
+        case secondTopicCollectionView:
+            guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: TopicCell.identifier, for: indexPath) as? TopicCell else { return .init() }
+            cell.configureCell(with: secondTopicData[indexPath.item])
+            return cell
+        case thirdTopicCollectionView:
+            guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: TopicCell.identifier, for: indexPath) as? TopicCell else { return .init() }
+            cell.configureCell(with: thirdTopicData[indexPath.item])
+            return cell
+        default:
+            return .init()
+        }
     }
 }
 

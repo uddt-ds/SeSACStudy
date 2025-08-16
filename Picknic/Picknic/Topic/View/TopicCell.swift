@@ -6,6 +6,8 @@
 //
 
 import UIKit
+import SnapKit
+import Kingfisher
 
 final class TopicCell: UICollectionViewCell, ReusableViewProtocol, BaseViewProtocol {
 
@@ -50,6 +52,18 @@ final class TopicCell: UICollectionViewCell, ReusableViewProtocol, BaseViewProto
     func configureView() {
         backgroundColor = .clear
         contentView.backgroundColor = .clear
+    }
+
+    func configureCell(with data: PhotoResult) {
+        guard let url = URL(string: data.urls.small) else { return }
+        imageView.kf.setImage(with: url)
+
+        let container = AttributeContainer([
+            .foregroundColor : UIColor.white,
+            .font : UIFont.systemFont(ofSize: 10)
+        ])
+        let attributedTitle = AttributedString("\(data.likes)", attributes: container)
+        button.configuration?.attributedTitle = attributedTitle
     }
 }
 
