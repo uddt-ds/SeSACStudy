@@ -79,6 +79,13 @@ class SearchPhotoViewModel {
             self.fetch(sortType)
             self.output.scrollGoToTop.value = ()
         }
+
+        input.colorType.bind { colorType in
+            self.middle.page.value = 1
+            self.output.searchResult.value = nil
+            self.fetch(self.input.sortType.value)
+            self.output.scrollGoToTop.value = ()
+        }
     }
 
     private func validate(_ text: String?) -> Bool {
@@ -89,6 +96,8 @@ class SearchPhotoViewModel {
         return true
     }
 
+
+    //TODO: fetch 관련 구조 개선 필요. color가 없는게 default라서 있을 때는 별도로 fetch해야하는 상황
     private func fetch(_ orderBy: String) {
         guard let keyword = input.searchKeyword.value else { return }
 
@@ -97,31 +106,62 @@ class SearchPhotoViewModel {
         let page = middle.page.value
         let perpage = 20
         let color = input.colorType.value
-        networkManager.callRequest(api: .search(query: keyword, page: page, perpage: perpage, orderBy: orderBy, color: color), type: SearchPhoto.self) { [weak self] response in
-            guard let self else { return }
+        if let color {
+            print(color)
+            networkManager.callRequest(api: .search(query: keyword, page: page, perpage: perpage, orderBy: orderBy, color: color), type: SearchPhoto.self) { [weak self] response in
+                guard let self else { return }
 
-            self.isInfiniteScroll = false
+                self.isInfiniteScroll = false
 
-            // 새로운 검색하면 page 1로 바뀌는지 확인이 필요함
-//            if !self.isInfiniteScroll {
-//                self.middle.page.value = 1
-//                self.output.searchResult.value = nil
-//            }
+                // 새로운 검색하면 page 1로 바뀌는지 확인이 필요함
+    //            if !self.isInfiniteScroll {
+    //                self.middle.page.value = 1
+    //                self.output.searchResult.value = nil
+    //            }
 
-            switch response {
-            case .success(let data):
-                if page == 1 {
-                    self.output.searchResult.value = data
-                } else if page >= 2 {
-                    var currentData = self.output.searchResult.value ?? .init(total: 0, totalPages: 0, results: [])
-                    currentData.results.append(contentsOf: data.results)
-                    currentData.total = data.total
-                    currentData.totalPages = data.totalPages
-                    self.output.searchResult.value = currentData
+                switch response {
+                case .success(let data):
+                    if page == 1 {
+                        self.output.searchResult.value = data
+                    } else if page >= 2 {
+                        var currentData = self.output.searchResult.value ?? .init(total: 0, totalPages: 0, results: [])
+                        currentData.results.append(contentsOf: data.results)
+                        currentData.total = data.total
+                        currentData.totalPages = data.totalPages
+                        self.output.searchResult.value = currentData
+                    }
+
+                case .failure(let error):
+                    print(error.localizedDescription)
                 }
+            }
+        } else {
+            networkManager.callRequest(api: .search(query: keyword, page: page, perpage: perpage, orderBy: orderBy, color: color), type: SearchPhoto.self) { [weak self] response in
+                guard let self else { return }
 
-            case .failure(let error):
-                print(error.localizedDescription)
+                self.isInfiniteScroll = false
+
+                // 새로운 검색하면 page 1로 바뀌는지 확인이 필요함
+    //            if !self.isInfiniteScroll {
+    //                self.middle.page.value = 1
+    //                self.output.searchResult.value = nil
+    //            }
+
+                switch response {
+                case .success(let data):
+                    if page == 1 {
+                        self.output.searchResult.value = data
+                    } else if page >= 2 {
+                        var currentData = self.output.searchResult.value ?? .init(total: 0, totalPages: 0, results: [])
+                        currentData.results.append(contentsOf: data.results)
+                        currentData.total = data.total
+                        currentData.totalPages = data.totalPages
+                        self.output.searchResult.value = currentData
+                    }
+
+                case .failure(let error):
+                    print(error.localizedDescription)
+                }
             }
         }
     }

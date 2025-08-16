@@ -8,11 +8,13 @@
 import UIKit
 import SnapKit
 
-final class SearchPhotoCell: UICollectionViewCell, BaseViewProtocol, ReusableViewProtocol {
+final class ColorButtonCell: UICollectionViewCell, BaseViewProtocol, ReusableViewProtocol {
 
     private let view: UIView = {
         let view = UIView()
         view.backgroundColor = ColorSet.black.color
+        view.layer.cornerRadius = 10
+        view.clipsToBounds = true
         return view
     }()
 
@@ -20,6 +22,7 @@ final class SearchPhotoCell: UICollectionViewCell, BaseViewProtocol, ReusableVie
         let label = UILabel()
         label.text = ColorSet.black.title
         label.textColor = .black
+        label.textAlignment = .center
         label.font = .systemFont(ofSize: 12)
         return label
     }()
@@ -29,7 +32,7 @@ final class SearchPhotoCell: UICollectionViewCell, BaseViewProtocol, ReusableVie
         stack.axis = .horizontal
         stack.spacing = 4
         stack.alignment = .center
-        stack.distribution = .fillProportionally
+        stack.distribution = .fill
         stack.backgroundColor = .lightGray
         stack.layer.cornerRadius = 8
         stack.clipsToBounds = true
@@ -53,7 +56,7 @@ final class SearchPhotoCell: UICollectionViewCell, BaseViewProtocol, ReusableVie
 
     func configureLayout() {
         view.snp.makeConstraints { make in
-            make.size.equalTo(14)
+            make.size.equalTo(20)
         }
 
         buttonStackView.snp.makeConstraints { make in
@@ -65,6 +68,19 @@ final class SearchPhotoCell: UICollectionViewCell, BaseViewProtocol, ReusableVie
         contentView.backgroundColor = .clear
     }
 
+    func configureButton(with data: ColorSet) {
+        view.backgroundColor = data.color
+        label.text = data.title
+    }
+
+    // 특정 Cell에 접근해서 background color를 바꾸려고 했는데 잘 안되는 상황
+    func setupBlankButton(with index: Int) {
+        buttonStackView.backgroundColor = .white
+    }
+
+    override func prepareForReuse() {
+        super.prepareForReuse()
+    }
 }
 
 

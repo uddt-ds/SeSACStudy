@@ -18,6 +18,7 @@ enum ColorSet: String, CaseIterable {
     case magenta
     case green
     case blue
+    case blank
 
     var color: UIColor {
         switch self {
@@ -30,6 +31,7 @@ enum ColorSet: String, CaseIterable {
         case .magenta: return .magenta
         case .green: return .green
         case .blue: return .blue
+        case .blank: return .white
         }
     }
 
@@ -44,6 +46,7 @@ enum ColorSet: String, CaseIterable {
         case .magenta: return "마젠타"
         case .green: return "그린"
         case .blue: return "블루"
+        case .blank: return ""
         }
     }
 }
@@ -100,7 +103,7 @@ final class SearchPhotoVC: UIViewController, BaseViewProtocol {
         let view = UICollectionView(frame: .zero, collectionViewLayout: self.makeButtonCollectinoViewLayout())
         view.dataSource = self
         view.delegate = self
-        view.register(SearchPhotoCell.self, forCellWithReuseIdentifier: SearchPhotoCell.identifier)
+        view.register(ColorButtonCell.self, forCellWithReuseIdentifier: ColorButtonCell.identifier)
         view.showsHorizontalScrollIndicator = false
         return view
     }()
@@ -148,6 +151,13 @@ final class SearchPhotoVC: UIViewController, BaseViewProtocol {
                 self.photoCollectionView.reloadData()
             }
         }
+    }
+
+    // TODO: 네비게이션 컨트롤러 일일히 껏다켰다하는거 수정 필요
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+
+        navigationController?.navigationBar.isHidden = false
     }
 
     private func setupSearchController() {
@@ -254,7 +264,7 @@ extension SearchPhotoVC: UICollectionViewDelegate, UICollectionViewDataSource {
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         switch collectionView {
         case buttonCollectionView:
-            return 10
+            return ColorSet.allCases.count
         case photoCollectionView:
             return searchPhotoData.results.count
         default:
@@ -265,7 +275,11 @@ extension SearchPhotoVC: UICollectionViewDelegate, UICollectionViewDataSource {
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         switch collectionView {
         case buttonCollectionView:
-            guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: SearchPhotoCell.identifier, for: indexPath) as? SearchPhotoCell else { return .init() }
+            guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: ColorButtonCell.identifier, for: indexPath) as? ColorButtonCell else { return .init() }
+            cell.configureButton(with: ColorSet.allCases[indexPath.item])
+            if ColorSet.allCases[indexPath.item] == ColorSet.blank {
+                cell.setupBlankButton(with: indexPath.item)
+            }
             return cell
         case photoCollectionView:
             guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: PhotoResultCell.identifier, for: indexPath) as? PhotoResultCell else { return .init() }
@@ -296,7 +310,7 @@ extension SearchPhotoVC: UICollectionViewDelegate, UICollectionViewDataSource {
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         switch collectionView {
         case buttonCollectionView:
-            print("buttonTapped")
+            viewModel.input.colorType.value = ColorSet.allCases[indexPath.item].rawValue
         case photoCollectionView:
             let viewModel = DetailPhotoViewModel(photoData: searchPhotoData.results[indexPath.item])
             let vc = DetailPhotoVC(viewModel: viewModel)
