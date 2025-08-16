@@ -16,16 +16,6 @@ final class TopicVC: UIViewController, BaseViewProtocol {
     var secondTopicData: [PhotoResult] = []
     var thirdTopicData: [PhotoResult] = []
 
-    private let imageView: UIImageView = {
-        let imageView = UIImageView()
-        imageView.contentMode = .scaleAspectFill
-        imageView.clipsToBounds = true
-        imageView.backgroundColor = .blue
-        imageView.layer.cornerRadius = 18
-        imageView.clipsToBounds = true
-        imageView.isUserInteractionEnabled = true
-        return imageView
-    }()
 
     private let headerLabel: UILabel = {
         let label = UILabel()
@@ -90,13 +80,24 @@ final class TopicVC: UIViewController, BaseViewProtocol {
         return collectionView
     }()
 
+    private lazy var scrollView: UIScrollView = {
+        let scrollView = UIScrollView()
+        scrollView.delegate = self
+        scrollView.showsVerticalScrollIndicator = false
+        return scrollView
+    }()
+
+    private let contentView: UIView = {
+        let view = UIView()
+        return view
+    }()
+
     override func viewDidLoad() {
         super.viewDidLoad()
         configureHierarchy()
         configureLayout()
         configureView()
-
-        navigationController?.navigationBar.isHidden = true
+        setupNav()
 
         bindViewModel()
     }
@@ -114,18 +115,20 @@ final class TopicVC: UIViewController, BaseViewProtocol {
     }
 
     func configureHierarchy() {
-        [imageView, headerLabel, firstTopicLabel, firstTopicCollectionView, secondTopicLabel, secondTopicCollectionView, thirdTopicLabel, thirdTopicCollectionView].forEach { view.addSubview($0) }
+        view.addSubview(scrollView)
+
+        scrollView.addSubview(contentView)
+
+        [headerLabel, firstTopicLabel, firstTopicCollectionView, secondTopicLabel, secondTopicCollectionView, thirdTopicLabel, thirdTopicCollectionView].forEach { view.addSubview($0) }
     }
 
     func configureLayout() {
-        imageView.snp.makeConstraints { make in
-            make.top.equalTo(view.safeAreaLayoutGuide).offset(20)
-            make.trailing.equalTo(view.safeAreaLayoutGuide).offset(-20)
-            make.size.equalTo(36)
+        scrollView.snp.makeConstraints { make in
+            make.directionalEdges.equalToSuperview()
         }
 
         headerLabel.snp.makeConstraints { make in
-            make.top.equalTo(imageView.snp.bottom).offset(20)
+            make.top.equalTo(view.safeAreaLayoutGuide)
             make.leading.equalTo(view.safeAreaLayoutGuide).offset(20)
             make.height.equalTo(26)
         }
@@ -167,6 +170,11 @@ final class TopicVC: UIViewController, BaseViewProtocol {
         }
     }
 
+    private func setupNav() {
+        navigationItem.title = ""
+        navigationItem.rightBarButtonItem = UIBarButtonItem(image: UIImage(systemName: "star"), style: .done, target: self, action: #selector(buttonTapped))
+    }
+
     func makeFirstCollectinoViewLayout() -> UICollectionViewFlowLayout {
         typealias quantity = TopicCollectinoViewQuantity
 
@@ -180,6 +188,10 @@ final class TopicVC: UIViewController, BaseViewProtocol {
                                     right: quantity.trailingInset.value)
         layout.itemSize = .init(width: 150, height: 200) // TODO: 삭제 필요. width 동적으로 가져와야함
         return layout
+    }
+
+    @objc private func buttonTapped() {
+        print("buttonTapped")
     }
 }
 
@@ -214,6 +226,25 @@ extension TopicVC: UICollectionViewDelegate, UICollectionViewDataSource {
             return cell
         default:
             return .init()
+        }
+    }
+
+    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        switch collectionView {
+        case firstTopicCollectionView:
+            let viewModel = DetailPhotoViewModel(photoData: firstTopicData[indexPath.item])
+            let vc = DetailPhotoVC(viewModel: viewModel)
+            navigationController?.pushViewController(vc, animated: true)
+        case secondTopicCollectionView:
+            let viewModel = DetailPhotoViewModel(photoData: secondTopicData[indexPath.item])
+            let vc = DetailPhotoVC(viewModel: viewModel)
+            navigationController?.pushViewController(vc, animated: true)
+        case thirdTopicCollectionView:
+            let viewModel = DetailPhotoViewModel(photoData: thirdTopicData[indexPath.item])
+            let vc = DetailPhotoVC(viewModel: viewModel)
+            navigationController?.pushViewController(vc, animated: true)
+        default:
+            return
         }
     }
 }

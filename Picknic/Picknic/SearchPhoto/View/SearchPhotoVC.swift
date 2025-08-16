@@ -153,13 +153,6 @@ final class SearchPhotoVC: UIViewController, BaseViewProtocol {
         }
     }
 
-    // TODO: 네비게이션 컨트롤러 일일히 껏다켰다하는거 수정 필요
-    override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
-
-        navigationController?.navigationBar.isHidden = false
-    }
-
     private func setupSearchController() {
         searchController.searchBar.placeholder = "키워드 검색"
         searchController.automaticallyShowsCancelButton = false
