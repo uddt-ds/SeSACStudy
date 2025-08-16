@@ -144,7 +144,7 @@ final class TopicVC: UIViewController, BaseViewProtocol {
         headerBackgroundView.snp.makeConstraints { make in
             make.top.equalTo(view.safeAreaLayoutGuide)
             make.directionalHorizontalEdges.equalToSuperview()
-            make.directionalVerticalEdges.equalTo(headerLabel.snp.directionalVerticalEdges).inset(-10)
+            make.directionalVerticalEdges.equalTo(headerLabel.snp.directionalVerticalEdges)
         }
 
         headerLabel.snp.makeConstraints { make in
