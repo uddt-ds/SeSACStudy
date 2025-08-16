@@ -104,19 +104,12 @@ final class TopicVC: UIViewController, BaseViewProtocol {
     private func bindViewModel() {
         viewModel.input.viewDidLoadTrigger.value = ()
 
-        viewModel.output.firstTopicData.lazyBind { data in
-            self.firstTopicData = data
-            self.firstTopicCollectionView.reloadData()
-        }
+        viewModel.output.totalData.bind { data in
+            self.firstTopicData = data.first
+            self.secondTopicData = data.second
+            self.thirdTopicData = data.third
 
-        viewModel.output.secondTopicData.lazyBind { data in
-            self.secondTopicData = data
-            self.secondTopicCollectionView.reloadData()
-        }
-
-        viewModel.output.thirdTopicData.lazyBind { data in
-            self.thirdTopicData = data
-            self.thirdTopicCollectionView.reloadData()
+            [self.firstTopicCollectionView, self.secondTopicCollectionView, self.thirdTopicCollectionView].forEach { $0.reloadData() }
         }
     }
 
