@@ -33,9 +33,11 @@ final class ColorButtonCell: UICollectionViewCell, BaseViewProtocol, ReusableVie
         stack.spacing = 4
         stack.alignment = .center
         stack.distribution = .fill
-        stack.backgroundColor = .lightGray
-        stack.layer.cornerRadius = 8
+        stack.backgroundColor = .systemGray5
+        stack.layer.cornerRadius = 15
         stack.clipsToBounds = true
+        stack.layoutMargins = UIEdgeInsets(top: 0, left: 6, bottom: 0, right: 6)
+        stack.isLayoutMarginsRelativeArrangement = true
         return stack
     }()
 
@@ -73,13 +75,25 @@ final class ColorButtonCell: UICollectionViewCell, BaseViewProtocol, ReusableVie
         label.text = data.title
     }
 
-    // 특정 Cell에 접근해서 background color를 바꾸려고 했는데 잘 안되는 상황
     func setupBlankButton(with index: Int) {
+        view.backgroundColor = .white
         buttonStackView.backgroundColor = .white
+    }
+
+    func selectedButton(isSelected: Bool) {
+        print(isSelected)
+        if isSelected {
+            buttonStackView.backgroundColor = .blue
+            label.textColor = .white
+        } else {
+            buttonStackView.backgroundColor = .systemGray5
+            label.textColor = .black
+        }
     }
 
     override func prepareForReuse() {
         super.prepareForReuse()
+        buttonStackView.backgroundColor = .lightGray
     }
 }
 

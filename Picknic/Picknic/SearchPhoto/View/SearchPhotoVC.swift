@@ -97,6 +97,8 @@ final class SearchPhotoVC: UIViewController, BaseViewProtocol {
 
     private let viewModel = SearchPhotoViewModel()
 
+    private var selectedIndexPath: IndexPath?
+
     private var searchPhotoData: SearchPhoto = .init(total: 0, totalPages: 0, results: [])
 
     private lazy var buttonCollectionView: UICollectionView = {
@@ -219,6 +221,7 @@ final class SearchPhotoVC: UIViewController, BaseViewProtocol {
 
     private func setupNav() {
         navigationItem.title = "SEARCH PHOTO"
+        navigationController?.navigationBar.scrollEdgeAppearance = .init()
     }
 
     private func makeButtonCollectinoViewLayout() -> UICollectionViewFlowLayout {
@@ -232,7 +235,7 @@ final class SearchPhotoVC: UIViewController, BaseViewProtocol {
                                     left: quantity.leadingInset.value,
                                     bottom: quantity.bottomInset.value,
                                     right: quantity.trailingInset.value)
-        layout.itemSize = .init(width: 60, height: 32) // TODO: 삭제 필요. width 동적으로 가져와야함
+        layout.itemSize = .init(width: 80, height: 32) // TODO: 삭제 필요. width 동적으로 가져와야함
         return layout
     }
 
@@ -270,6 +273,10 @@ extension SearchPhotoVC: UICollectionViewDelegate, UICollectionViewDataSource {
         case buttonCollectionView:
             guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: ColorButtonCell.identifier, for: indexPath) as? ColorButtonCell else { return .init() }
             cell.configureButton(with: ColorSet.allCases[indexPath.item])
+
+            let isSelected = (indexPath == selectedIndexPath)
+            cell.selectedButton(isSelected: isSelected)
+
             if ColorSet.allCases[indexPath.item] == ColorSet.blank {
                 cell.setupBlankButton(with: indexPath.item)
             }
@@ -303,7 +310,26 @@ extension SearchPhotoVC: UICollectionViewDelegate, UICollectionViewDataSource {
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         switch collectionView {
         case buttonCollectionView:
-            viewModel.input.colorType.value = ColorSet.allCases[indexPath.item].rawValue
+            if viewModel.input.colorType.value == nil {
+                viewModel.input.colorType.value = ColorSet.allCases[indexPath.item].rawValue
+                selectedIndexPath = indexPath
+                collectionView.reloadItems(at: [indexPath])
+            } else if viewModel.input.colorType.value != nil &&
+                        viewModel.input.colorType.value == ColorSet.allCases[indexPath.item].rawValue {
+                viewModel.input.colorType.value = nil
+                selectedIndexPath = nil
+                collectionView.reloadItems(at: [indexPath])
+            } else if viewModel.input.colorType.value != ColorSet.allCases[indexPath.item].rawValue {
+                let previousIndexPath = selectedIndexPath
+                selectedIndexPath = indexPath
+                viewModel.input.colorType.value = ColorSet.allCases[indexPath.item].rawValue
+                if let selectedIndexPath, let previousIndexPath {
+                    collectionView.reloadItems(at: [
+                        previousIndexPath,
+                        selectedIndexPath
+                    ])
+                }
+        }
         case photoCollectionView:
             let viewModel = DetailPhotoViewModel(photoData: searchPhotoData.results[indexPath.item])
             let vc = DetailPhotoVC(viewModel: viewModel)
