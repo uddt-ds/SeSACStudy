@@ -10,6 +10,8 @@ import Kingfisher
 
 final class PhotoResultCell: UICollectionViewCell, BaseViewProtocol, ReusableViewProtocol {
 
+    var heartButtonTapped: (() -> Void)?
+
     private let imageView: UIImageView = {
         let imageView = UIImageView()
         imageView.isUserInteractionEnabled = true
@@ -19,7 +21,7 @@ final class PhotoResultCell: UICollectionViewCell, BaseViewProtocol, ReusableVie
 
     private let starCountButton = StarButton()
 
-    private let heartButton: UIButton = {
+    private lazy var heartButton: UIButton = {
         var configuration = UIButton.Configuration.filled()
         configuration.image = UIImage(systemName: "heart.fill")
         configuration.preferredSymbolConfigurationForImage = UIImage.SymbolConfiguration(pointSize: 18)
@@ -28,6 +30,14 @@ final class PhotoResultCell: UICollectionViewCell, BaseViewProtocol, ReusableVie
         configuration.baseForegroundColor = .white
         let button = UIButton(configuration: configuration)
         button.clipsToBounds = true
+        button.addTarget(self, action: #selector(buttonTapped), for: .touchUpInside)
+        button.configurationUpdateHandler = { btn in
+            if btn.isSelected {
+                btn.configuration?.baseForegroundColor = .blue
+            } else {
+                btn.configuration?.baseForegroundColor = .white
+            }
+        }
         return button
     }()
 
@@ -78,5 +88,10 @@ final class PhotoResultCell: UICollectionViewCell, BaseViewProtocol, ReusableVie
         ])
         let attributedTitle = AttributedString("\(data.formatterLikes)", attributes: container)
         starCountButton.configuration?.attributedTitle = attributedTitle
+    }
+
+    @objc private func buttonTapped(_ sender: UIButton) {
+        heartButton.isSelected.toggle()
+        heartButtonTapped?()
     }
 }

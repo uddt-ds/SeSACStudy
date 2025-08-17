@@ -194,6 +194,7 @@ final class TopicVC: UIViewController, BaseViewProtocol {
     private func setupNav() {
         navigationItem.title = ""
         navigationItem.rightBarButtonItem = UIBarButtonItem(image: UIImage(systemName: "star"), style: .done, target: self, action: #selector(buttonTapped))
+        navigationController?.navigationBar.shadowImage = nil
     }
 
     func makeFirstCollectinoViewLayout() -> UICollectionViewFlowLayout {
