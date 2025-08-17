@@ -143,6 +143,11 @@ final class SearchPhotoVC: UIViewController, BaseViewProtocol {
         sortButtonToggle()
 
         bindViewModel()
+
+        NotificationCenter.default.addObserver(self,
+                                               selector: #selector(valueChanged),
+                                               name: .isUpdateLikeList,
+                                               object: nil)
     }
 
     private func sortButtonToggle() {
@@ -228,6 +233,11 @@ final class SearchPhotoVC: UIViewController, BaseViewProtocol {
         navigationController?.navigationBar.scrollEdgeAppearance = .init()
     }
 
+    @objc private func valueChanged(notification: Notification) {
+        guard let isUpdate = notification.userInfo?["isAdded"] as? Bool else { return }
+        print(isUpdate)
+    }
+
     private func makeButtonCollectinoViewLayout() -> UICollectionViewFlowLayout {
         typealias quantity = ButtonCollectionViewQuantity
 
@@ -239,7 +249,6 @@ final class SearchPhotoVC: UIViewController, BaseViewProtocol {
                                     left: quantity.leadingInset.value,
                                     bottom: quantity.bottomInset.value,
                                     right: quantity.trailingInset.value)
-        layout.itemSize = .init(width: 80, height: 32) // TODO: 삭제 필요. width 동적으로 가져와야함
         return layout
     }
 
@@ -361,7 +370,7 @@ extension SearchPhotoVC: UICollectionViewDelegateFlowLayout {
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
         switch collectionView {
         case buttonCollectionView:
-            return .init(width: (view.frame.width) / 5, height: 40)
+            return .init(width: (view.frame.width) / 5, height: 32)
         case photoCollectionView:
             return .init(width: ((collectionView.frame.width) / 2) - PhotoCollectionViewQuantity.lineSpacing.value,
                          height: (collectionView.frame.height) / 2.3 - PhotoCollectionViewQuantity.itemSpacing.value)

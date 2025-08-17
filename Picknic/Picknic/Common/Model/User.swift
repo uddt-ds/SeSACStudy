@@ -21,11 +21,26 @@ struct UserModel: Codable {
 extension UserModel {
     static func updateLikeList(photoId: String) {
         var currentData = likesList
+
+        let isAdded: Bool
+
         if currentData.contains(photoId) {
             currentData.remove(photoId)
+            isAdded = false
         } else {
             currentData.insert(photoId)
+            isAdded = true
         }
         likesList = currentData
+
+        NotificationCenter.default.post(
+            name: .isUpdateLikeList,
+            object: nil,
+            userInfo: ["isAdded": isAdded]
+        )
     }
+}
+
+extension Notification.Name {
+    static let isUpdateLikeList = Notification.Name("isUpdateLikeList")
 }

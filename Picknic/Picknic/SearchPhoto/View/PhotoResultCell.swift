@@ -81,6 +81,7 @@ final class PhotoResultCell: UICollectionViewCell, BaseViewProtocol, ReusableVie
 
     func configureCell(with data: PhotoResult) {
         guard let url = URL(string: data.urls.small) else { return }
+        imageView.kf.indicatorType = .activity
         imageView.kf.setImage(with: url)
 
         let container = AttributeContainer([
