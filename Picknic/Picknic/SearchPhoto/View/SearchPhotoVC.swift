@@ -325,12 +325,11 @@ extension SearchPhotoVC: UICollectionViewDelegate, UICollectionViewDataSource {
         let contentSizeHeight = self.photoCollectionView.contentSize.height
         let collectionViewHeight = self.photoCollectionView.bounds.height
         let offset = scrollView.contentOffset
-//
-//        guard contentSizeHeight > collectionViewHeight else { return
-//            viewModel.isInfiniteScroll = false
-//        }
 
-        // TODO: 페이지 2개씩 올라가는 문제 해결 필요
+        guard contentSizeHeight > collectionViewHeight else { return
+            viewModel.isInfiniteScroll = false
+        }
+
         if offset.y > (contentSizeHeight - collectionViewHeight - 180), !viewModel.isInfiniteScroll {
             viewModel.isInfiniteScroll = true
             viewModel.input.scrollDidChangeTrigger.value = ()
