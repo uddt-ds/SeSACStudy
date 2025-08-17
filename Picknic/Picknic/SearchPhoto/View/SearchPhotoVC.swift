@@ -9,88 +9,6 @@ import UIKit
 import SnapKit
 import Toast
 
-enum ColorSet: String, CaseIterable {
-    case black
-    case white
-    case yellow
-    case orange
-    case red
-    case purple
-    case magenta
-    case green
-    case blue
-    case blank
-
-    var color: UIColor {
-        switch self {
-        case .black: return .black
-        case .white: return .white
-        case .yellow: return .yellow
-        case .orange: return .orange
-        case .red: return .red
-        case .purple: return .purple
-        case .magenta: return .magenta
-        case .green: return .green
-        case .blue: return .blue
-        case .blank: return .white
-        }
-    }
-
-    var title: String {
-        switch self {
-        case .black: return "블랙"
-        case .white: return "화이트"
-        case .yellow: return "옐로우"
-        case .orange: return "오렌지"
-        case .red: return "레드"
-        case .purple: return "퍼플"
-        case .magenta: return "마젠타"
-        case .green: return "그린"
-        case .blue: return "블루"
-        case .blank: return ""
-        }
-    }
-}
-
-enum ButtonCollectionViewQuantity: CaseIterable {
-    case lineSpacing
-    case itemSpacing
-    case leadingInset
-    case trailingInset
-    case topInset
-    case bottomInset
-
-    var value: CGFloat {
-        switch self {
-        case .lineSpacing: return 8
-        case .itemSpacing: return 0
-        case .leadingInset: return 8
-        case .trailingInset: return 8
-        case .topInset: return 0
-        case .bottomInset: return 0
-        }
-    }
-}
-
-enum PhotoCollectionViewQuantity: CaseIterable {
-    case lineSpacing
-    case itemSpacing
-    case leadingInset
-    case trailingInset
-    case topInset
-    case bottomInset
-
-    var value: CGFloat {
-        switch self {
-        case .lineSpacing: return 2
-        case .itemSpacing: return 2
-        case .leadingInset: return 0
-        case .trailingInset: return 0
-        case .topInset: return 0
-        case .bottomInset: return 0
-        }
-    }
-}
 
 final class SearchPhotoVC: UIViewController, BaseViewProtocol {
 
@@ -143,16 +61,13 @@ final class SearchPhotoVC: UIViewController, BaseViewProtocol {
         configureView()
         setupNav()
         setupSearchController()
+
         sortButtonToggle()
-
         bindViewModel()
-
-        NotificationCenter.default.addObserver(self,
-                                               selector: #selector(valueChanged),
-                                               name: .isUpdateLikeList,
-                                               object: nil)
+        addObserverNotificationCenter()
     }
 
+    // TODO: 이 로직도 ViewModel로 옮길 수 있지 않을까?
     private func sortButtonToggle() {
         sortButton.isToggle = { [weak self] isToggle in
             guard let self else { return }
@@ -167,6 +82,55 @@ final class SearchPhotoVC: UIViewController, BaseViewProtocol {
         }
     }
 
+    private func bindViewModel() {
+        viewModel.output.searchResult.lazyBind { [weak self] response in
+            guard let self else { return }
+            guard let response else { return }
+            self.searchPhotoData = response
+            self.photoCollectionView.reloadData()
+            showPlaceHolderLabel()
+        }
+
+        viewModel.output.scrollGoToTop.lazyBind { [weak self] _ in
+            guard let self else { return }
+            if searchPhotoData.results.count != 0 {
+                self.photoCollectionView.scrollToItem(at: IndexPath(item: 0, section: 0), at: .top, animated: true)
+            }
+        }
+    }
+
+    private func addObserverNotificationCenter() {
+        NotificationCenter.default.addObserver(self,
+                                               selector: #selector(valueChanged),
+                                               name: .isUpdateLikeList,
+                                               object: nil)
+    }
+
+    // result도 없고, searchButton도 눌렀으면 "검색 결과가 없어요"
+    // result만 없으면 검색어를 입력해주세요
+    private func showPlaceHolderLabel() {
+        if searchPhotoData.results.count == 0 {
+            phLabel.text = "검색 결과가 없어요"
+            phLabel.isHidden = false
+        } else {
+            phLabel.isHidden = true
+        }
+    }
+
+    @objc private func valueChanged(notification: Notification) {
+        guard let isUpdate = notification.userInfo?["isAdded"] as? Bool else { return }
+        if isUpdate {
+            view.makeToast("저장되었습니다", duration: 2.0, position: .bottom)
+        } else {
+            view.makeToast("삭제되었습니다", duration: 2.0, position: .bottom)
+        }
+    }
+
+
+}
+
+// MARK: Setup UI
+extension SearchPhotoVC {
     private func setupSearchController() {
         searchController.searchBar.placeholder = "키워드 검색"
         searchController.automaticallyShowsCancelButton = false
@@ -203,47 +167,11 @@ final class SearchPhotoVC: UIViewController, BaseViewProtocol {
         }
     }
 
-    private func bindViewModel() {
-        viewModel.output.searchResult.lazyBind { [weak self] response in
-            guard let self else { return }
-            guard let response else { return }
-            self.searchPhotoData = response
-            self.photoCollectionView.reloadData()
-            showPlaceHolderLabel()
-        }
-
-        viewModel.output.scrollGoToTop.lazyBind { [weak self] _ in
-            guard let self else { return }
-            if searchPhotoData.results.count != 0 {
-                self.photoCollectionView.scrollToItem(at: IndexPath(item: 0, section: 0), at: .top, animated: true)
-            }
-        }
-    }
-
-    // result도 없고, searchButton도 눌렀으면 "검색 결과가 없어요"
-    // result만 없으면 검색어를 입력해주세요
-    private func showPlaceHolderLabel() {
-        if searchPhotoData.results.count == 0 {
-            phLabel.text = "검색 결과가 없어요"
-            phLabel.isHidden = false
-        } else {
-            phLabel.isHidden = true
-        }
-    }
-
     private func setupNav() {
         navigationItem.title = "SEARCH PHOTO"
         navigationController?.navigationBar.scrollEdgeAppearance = .init()
     }
 
-    @objc private func valueChanged(notification: Notification) {
-        guard let isUpdate = notification.userInfo?["isAdded"] as? Bool else { return }
-        if isUpdate {
-            view.makeToast("저장되었습니다", duration: 2.0, position: .bottom)
-        } else {
-            view.makeToast("삭제되었습니다", duration: 2.0, position: .bottom)
-        }
-    }
 
     private func makeButtonCollectinoViewLayout() -> UICollectionViewFlowLayout {
         typealias quantity = ButtonCollectionViewQuantity
@@ -367,6 +295,7 @@ extension SearchPhotoVC: UICollectionViewDelegate, UICollectionViewDataSource {
         case photoCollectionView:
             let viewModel = DetailPhotoViewModel(photoData: searchPhotoData.results[indexPath.item])
             let vc = DetailPhotoVC(viewModel: viewModel)
+            navigationItem.backButtonTitle = ""
             navigationController?.pushViewController(vc, animated: true)
         default:
             return
@@ -401,6 +330,52 @@ extension SearchPhotoVC: UISearchBarDelegate  {
     func searchBarTextDidEndEditing(_ searchBar: UISearchBar) {
         if viewModel.input.searchKeyword.value != searchBar.text {
             viewModel.input.searchKeyword.value = searchBar.text
+        }
+    }
+}
+
+//MARK: 버튼 컬렉션뷰를 위한 수치
+extension SearchPhotoVC {
+    enum ButtonCollectionViewQuantity: CaseIterable {
+        case lineSpacing
+        case itemSpacing
+        case leadingInset
+        case trailingInset
+        case topInset
+        case bottomInset
+
+        var value: CGFloat {
+            switch self {
+            case .lineSpacing: return 8
+            case .itemSpacing: return 0
+            case .leadingInset: return 8
+            case .trailingInset: return 8
+            case .topInset: return 0
+            case .bottomInset: return 0
+            }
+        }
+    }
+}
+
+//MARK: 사진 컬렉션뷰를 위한 수치
+extension SearchPhotoVC {
+    enum PhotoCollectionViewQuantity: CaseIterable {
+        case lineSpacing
+        case itemSpacing
+        case leadingInset
+        case trailingInset
+        case topInset
+        case bottomInset
+
+        var value: CGFloat {
+            switch self {
+            case .lineSpacing: return 2
+            case .itemSpacing: return 2
+            case .leadingInset: return 0
+            case .trailingInset: return 0
+            case .topInset: return 0
+            case .bottomInset: return 0
+            }
         }
     }
 }

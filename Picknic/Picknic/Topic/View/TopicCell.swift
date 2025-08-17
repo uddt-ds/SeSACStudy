@@ -11,7 +11,7 @@ import Kingfisher
 
 final class TopicCell: UICollectionViewCell, ReusableViewProtocol, BaseViewProtocol {
 
-    let imageView: UIImageView = {
+    private let imageView: UIImageView = {
         let imageView = UIImageView()
         imageView.contentMode = .scaleAspectFill
         imageView.layer.cornerRadius = 12
@@ -20,7 +20,7 @@ final class TopicCell: UICollectionViewCell, ReusableViewProtocol, BaseViewProto
         return imageView
     }()
 
-    let button = StarButton()
+    private let button = StarButton()
 
     override init(frame: CGRect) {
         super.init(frame: frame)

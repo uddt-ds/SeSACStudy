@@ -17,7 +17,7 @@ final class StarButton: UIButton {
             .foregroundColor : UIColor.white,
             .font : UIFont.systemFont(ofSize: 10)
         ])
-        let attributedTitle = AttributedString("1000", attributes: container)
+        let attributedTitle = AttributedString("", attributes: container)
         configuration?.attributedTitle = attributedTitle
         configuration?.image = UIImage(systemName: "star.fill")
         configuration?.preferredSymbolConfigurationForImage = UIImage.SymbolConfiguration(pointSize: 13)
@@ -25,7 +25,6 @@ final class StarButton: UIButton {
         configuration?.baseForegroundColor = .yellow
         configuration?.imagePadding = 4
         configuration?.cornerStyle = .capsule
-
     }
 
     @available(*, unavailable)

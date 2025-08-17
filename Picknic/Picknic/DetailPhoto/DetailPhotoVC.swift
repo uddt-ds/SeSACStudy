@@ -212,7 +212,6 @@ final class DetailPhotoVC: UIViewController, BaseViewProtocol {
 
     private lazy var scrollView: UIScrollView = {
         let scrollView = UIScrollView()
-        scrollView.delegate = self
         scrollView.showsVerticalScrollIndicator = false
         return scrollView
     }()
@@ -224,6 +223,7 @@ final class DetailPhotoVC: UIViewController, BaseViewProtocol {
         super.init(nibName: nil, bundle: nil)
     }
 
+    @available(*, unavailable)
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
@@ -236,10 +236,7 @@ final class DetailPhotoVC: UIViewController, BaseViewProtocol {
         configureView()
         bindViewModel()
 
-        NotificationCenter.default.addObserver(self,
-                                               selector: #selector(valueChanged),
-                                               name: Notification.Name.isUpdateLikeList,
-                                               object: nil)
+        addObserverNotificationCenter()
     }
 
     func bindViewModel() {
@@ -259,6 +256,40 @@ final class DetailPhotoVC: UIViewController, BaseViewProtocol {
         }
     }
 
+    private func addObserverNotificationCenter() {
+        NotificationCenter.default.addObserver(self,
+                                               selector: #selector(valueChanged),
+                                               name: .isUpdateLikeList,
+                                               object: nil)
+    }
+
+    // ViewModel로 보내줘야 함
+    @objc private func buttonTapped(_ sender: UIButton) {
+        heartButton.isSelected.toggle()
+        if heartButton.isSelected {
+            heartButton.tintColor = .main
+            if !UserModel.likesList.contains(statisticData.id) {
+                UserModel.updateLikeList(photoId: statisticData.id)
+            }
+        } else {
+            heartButton.tintColor = .gray
+            UserModel.updateLikeList(photoId: statisticData.id)
+        }
+        print(UserModel.likesList)
+    }
+
+    @objc private func valueChanged(notification: Notification) {
+        guard let isUpdate = notification.userInfo?["isAdded"] as? Bool else { return }
+        if isUpdate {
+            view.makeToast("저장되었습니다", duration: 2.0, position: .bottom)
+        } else {
+            view.makeToast("삭제되었습니다", duration: 2.0, position: .bottom)
+        }
+    }
+}
+
+//MARK: Setup UI
+extension DetailPhotoVC {
     func configureHierarchy() {
         [topStackView, scrollView].forEach { view.addSubview($0) }
         scrollView.addSubview(contentView)
@@ -320,34 +351,6 @@ final class DetailPhotoVC: UIViewController, BaseViewProtocol {
             heartButton.isSelected = true
         }
     }
-
-    // ViewModel로 보내줘야 함
-    @objc private func buttonTapped(_ sender: UIButton) {
-        heartButton.isSelected.toggle()
-        if heartButton.isSelected {
-            heartButton.tintColor = .main
-            if !UserModel.likesList.contains(statisticData.id) {
-                UserModel.updateLikeList(photoId: statisticData.id)
-            }
-        } else {
-            heartButton.tintColor = .gray
-            UserModel.updateLikeList(photoId: statisticData.id)
-        }
-        print(UserModel.likesList)
-    }
-
-    @objc private func valueChanged(notification: Notification) {
-        guard let isUpdate = notification.userInfo?["isAdded"] as? Bool else { return }
-        if isUpdate {
-            view.makeToast("저장되었습니다", duration: 2.0, position: .bottom)
-        } else {
-            view.makeToast("삭제되었습니다", duration: 2.0, position: .bottom)
-        }
-    }
-}
-
-extension DetailPhotoVC: UIScrollViewDelegate {
-
 }
 
 extension DetailPhotoVC {

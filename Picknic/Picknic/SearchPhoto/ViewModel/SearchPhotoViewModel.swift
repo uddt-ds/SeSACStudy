@@ -13,7 +13,7 @@ import Alamofire
  insomnia에서 받아오는 raw 데이터와 swift에서 받아오는 raw 데이터가 차이가 있을 수 있는지 확인 필요
  */
 
-class SearchPhotoViewModel {
+final class SearchPhotoViewModel {
 
     private let networkManager = NetworkManager.shared
 
