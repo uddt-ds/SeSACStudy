@@ -7,6 +7,7 @@
 
 import UIKit
 import SnapKit
+import Toast
 
 enum ColorSet: String, CaseIterable {
     case black
@@ -235,7 +236,11 @@ final class SearchPhotoVC: UIViewController, BaseViewProtocol {
 
     @objc private func valueChanged(notification: Notification) {
         guard let isUpdate = notification.userInfo?["isAdded"] as? Bool else { return }
-        print(isUpdate)
+        if isUpdate {
+            view.makeToast("저장되었습니다", duration: 2.0, position: .bottom)
+        } else {
+            view.makeToast("삭제되었습니다", duration: 2.0, position: .bottom)
+        }
     }
 
     private func makeButtonCollectinoViewLayout() -> UICollectionViewFlowLayout {
