@@ -23,7 +23,6 @@ final class DetailPhotoVC: UIViewController, BaseViewProtocol {
         let imageView = UIImageView()
         imageView.contentMode = .scaleAspectFill
         imageView.clipsToBounds = true
-        imageView.backgroundColor = .blue
         imageView.layer.cornerRadius = 18
         return imageView
     }()
@@ -81,7 +80,7 @@ final class DetailPhotoVC: UIViewController, BaseViewProtocol {
         let imageView = UIImageView()
         imageView.contentMode = .scaleAspectFill
         imageView.clipsToBounds = true
-        imageView.backgroundColor = .blue
+        imageView.backgroundColor = .main
         return imageView
     }()
 
@@ -124,7 +123,7 @@ final class DetailPhotoVC: UIViewController, BaseViewProtocol {
 
     private let totalViewsDetailLabel: UILabel = {
         let label = UILabel()
-        label.text = "1525253"
+        label.text = "testtest"
         label.font = .systemFont(ofSize: 14)
         return label
     }()
@@ -145,7 +144,7 @@ final class DetailPhotoVC: UIViewController, BaseViewProtocol {
 
     private let downLoadDetailLabel: UILabel = {
         let label = UILabel()
-        label.text = "3333333"
+        label.text = "testtest"
         label.font = .systemFont(ofSize: 14)
         return label
     }()
@@ -176,7 +175,7 @@ final class DetailPhotoVC: UIViewController, BaseViewProtocol {
     // TODO: 임시 이미지
     private let chartImageView: UIImageView = {
         let imageView = UIImageView()
-        imageView.backgroundColor = .blue
+        imageView.backgroundColor = .main
         return imageView
     }()
 
@@ -196,6 +195,11 @@ final class DetailPhotoVC: UIViewController, BaseViewProtocol {
         configureLayout()
         configureView()
         bindViewModel()
+
+        NotificationCenter.default.addObserver(self,
+                                               selector: #selector(valueChanged),
+                                               name: Notification.Name.isUpdateLikeList,
+                                               object: nil)
     }
 
     func bindViewModel() {
@@ -271,6 +275,7 @@ final class DetailPhotoVC: UIViewController, BaseViewProtocol {
 
     func configureUI(with data: PhotoResult, statisticsData: Statistics) {
         guard let url = URL(string: data.user.profileImage.medium) else { return }
+        profileImageView.kf.indicatorType = .activity
         profileImageView.kf.setImage(with: url)
         profileNameLabel.text = data.user.name
 
@@ -292,15 +297,24 @@ final class DetailPhotoVC: UIViewController, BaseViewProtocol {
     @objc private func buttonTapped(_ sender: UIButton) {
         heartButton.isSelected.toggle()
         if heartButton.isSelected {
-            heartButton.tintColor = .blue
+            heartButton.tintColor = .main
             if !UserModel.likesList.contains(statisticData.id) {
                 UserModel.updateLikeList(photoId: statisticData.id)
             }
         } else {
             heartButton.tintColor = .gray
-            UserModel.likesList.remove(statisticData.id)
+            UserModel.updateLikeList(photoId: statisticData.id)
         }
         print(UserModel.likesList)
+    }
+
+    @objc private func valueChanged(notification: Notification) {
+        guard let isUpdate = notification.userInfo?["isAdded"] as? Bool else { return }
+        if isUpdate {
+            view.makeToast("저장되었습니다", duration: 2.0, position: .bottom)
+        } else {
+            view.makeToast("삭제되었습니다", duration: 2.0, position: .bottom)
+        }
     }
 }
 
