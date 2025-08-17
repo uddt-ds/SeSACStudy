@@ -60,10 +60,11 @@ final class DetailPhotoVC: UIViewController, BaseViewProtocol {
         return stackView
     }()
 
-    private let heartButton: UIButton = {
+    private lazy var heartButton: UIButton = {
         let button = UIButton()
-        button.setImage(UIImage(systemName: "heart.fill"), for: .normal)
-        button.tintColor = .blue
+        button.setImage(UIImage(systemName: "heart"), for: .normal)
+        button.setImage(UIImage(systemName: "heart.fill"), for: .selected)
+        button.addTarget(self, action: #selector(buttonTapped), for: .touchUpInside)
         return button
     }()
 
@@ -277,8 +278,22 @@ final class DetailPhotoVC: UIViewController, BaseViewProtocol {
         photoImageView.kf.setImage(with: photoUrl)
 
         sizeDetailLabel.text = "\(data.height) x \(data.width)"
-        downLoadDetailLabel.text = "\(statisticsData.downloads.total)"
-        totalViewsDetailLabel.text = "\(data.formatterLikes)"
+        downLoadDetailLabel.text = "\(statisticsData.downloads.formattedTotal)"
+        totalViewsDetailLabel.text = "\(statisticsData.views.formattedViews)"
+
+        if UserModel.likesList.contains(statisticsData.id) {
+            heartButton.isSelected = true
+        }
+    }
+
+    // 버튼 다시 선택하면 해당 버튼 지워야 함 (ViewModel로 보내기)
+    @objc private func buttonTapped(_ sender: UIButton) {
+        heartButton.isSelected.toggle()
+        if heartButton.isSelected {
+            heartButton.tintColor = .blue
+        } else {
+            heartButton.tintColor = .gray
+        }
     }
 }
 

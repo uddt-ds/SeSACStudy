@@ -81,8 +81,8 @@ enum PhotoCollectionViewQuantity: CaseIterable {
 
     var value: CGFloat {
         switch self {
-        case .lineSpacing: return 4
-        case .itemSpacing: return 4
+        case .lineSpacing: return 2
+        case .itemSpacing: return 2
         case .leadingInset: return 0
         case .trailingInset: return 0
         case .topInset: return 0
@@ -190,7 +190,7 @@ final class SearchPhotoVC: UIViewController, BaseViewProtocol {
         }
 
         photoCollectionView.snp.makeConstraints { make in
-            make.top.equalTo(buttonCollectionView.snp.bottom)
+            make.top.equalTo(buttonCollectionView.snp.bottom).offset(8)
             make.directionalHorizontalEdges.bottom.equalTo(view.safeAreaLayoutGuide)
         }
     }
@@ -254,8 +254,6 @@ final class SearchPhotoVC: UIViewController, BaseViewProtocol {
                                     left: quantity.leadingInset.value,
                                     bottom: quantity.bottomInset.value,
                                     right: quantity.trailingInset.value)
-
-        layout.itemSize = .init(width: 196, height: 300)  //TODO: 삭제 필요. viewDidLayoutSubviews 단계에서 주입
         return layout
     }
 }
@@ -289,6 +287,14 @@ extension SearchPhotoVC: UICollectionViewDelegate, UICollectionViewDataSource {
         case photoCollectionView:
             guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: PhotoResultCell.identifier, for: indexPath) as? PhotoResultCell else { return .init() }
             cell.configureCell(with: searchPhotoData.results[indexPath.item])
+            let likeListData = UserModel.likesList
+
+            for likeData in likeListData {
+                if searchPhotoData.results[indexPath.item].id == likeData {
+                    cell.isAlreadyLike(isSelected: true)
+                }
+            }
+
             cell.heartButtonTapped = { [weak self] in
                 guard let self else { return }
                 UserModel.updateLikeList(photoId: searchPhotoData.results[indexPath.item].id)
@@ -347,6 +353,29 @@ extension SearchPhotoVC: UICollectionViewDelegate, UICollectionViewDataSource {
         default:
             return
         }
+    }
+}
+
+extension SearchPhotoVC: UICollectionViewDelegateFlowLayout {
+
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
+        switch collectionView {
+        case buttonCollectionView:
+            return .init(width: (view.frame.width) / 5, height: 40)
+        case photoCollectionView:
+            return .init(width: ((collectionView.frame.width) / 2) - PhotoCollectionViewQuantity.lineSpacing.value,
+                         height: (collectionView.frame.height) / 2.3 - PhotoCollectionViewQuantity.itemSpacing.value)
+        default:
+            return .zero
+        }
+    }
+
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumLineSpacingForSectionAt section: Int) -> CGFloat {
+        return PhotoCollectionViewQuantity.lineSpacing.value
+    }
+
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumInteritemSpacingForSectionAt section: Int) -> CGFloat {
+        return PhotoCollectionViewQuantity.itemSpacing.value
     }
 }
 

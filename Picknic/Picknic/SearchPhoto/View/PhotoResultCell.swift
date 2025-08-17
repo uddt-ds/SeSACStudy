@@ -16,6 +16,7 @@ final class PhotoResultCell: UICollectionViewCell, BaseViewProtocol, ReusableVie
         let imageView = UIImageView()
         imageView.isUserInteractionEnabled = true
         imageView.contentMode = .scaleAspectFill
+        imageView.clipsToBounds = true
         return imageView
     }()
 
@@ -93,5 +94,14 @@ final class PhotoResultCell: UICollectionViewCell, BaseViewProtocol, ReusableVie
     @objc private func buttonTapped(_ sender: UIButton) {
         heartButton.isSelected.toggle()
         heartButtonTapped?()
+    }
+
+    func isAlreadyLike(isSelected: Bool) {
+        heartButton.isSelected = isSelected
+    }
+
+    override func prepareForReuse() {
+        super.prepareForReuse()
+        heartButton.isSelected = false
     }
 }
