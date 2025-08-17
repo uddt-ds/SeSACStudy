@@ -42,7 +42,7 @@ final class TopicVC: UIViewController, BaseViewProtocol {
     }()
 
     private lazy var firstTopicCollectionView: UICollectionView = {
-        let collectionView = UICollectionView(frame: .zero, collectionViewLayout: makeFirstCollectinoViewLayout())
+        let collectionView = UICollectionView(frame: .zero, collectionViewLayout: makeCollectionViewLayout())
         collectionView.delegate = self
         collectionView.dataSource = self
         collectionView.showsHorizontalScrollIndicator = false
@@ -60,7 +60,7 @@ final class TopicVC: UIViewController, BaseViewProtocol {
     }()
 
     private lazy var secondTopicCollectionView: UICollectionView = {
-        let collectionView = UICollectionView(frame: .zero, collectionViewLayout: makeFirstCollectinoViewLayout())
+        let collectionView = UICollectionView(frame: .zero, collectionViewLayout: makeCollectionViewLayout())
         collectionView.delegate = self
         collectionView.dataSource = self
         collectionView.showsHorizontalScrollIndicator = false
@@ -78,7 +78,7 @@ final class TopicVC: UIViewController, BaseViewProtocol {
     }()
 
     private lazy var thirdTopicCollectionView: UICollectionView = {
-        let collectionView = UICollectionView(frame: .zero, collectionViewLayout: makeFirstCollectinoViewLayout())
+        let collectionView = UICollectionView(frame: .zero, collectionViewLayout: makeCollectionViewLayout())
         collectionView.delegate = self
         collectionView.dataSource = self
         collectionView.showsHorizontalScrollIndicator = false
@@ -212,7 +212,7 @@ final class TopicVC: UIViewController, BaseViewProtocol {
         navigationController?.navigationBar.shadowImage = nil
     }
 
-    func makeFirstCollectinoViewLayout() -> UICollectionViewFlowLayout {
+    func makeCollectionViewLayout() -> UICollectionViewFlowLayout {
         typealias quantity = TopicCollectinoViewQuantity
 
         let layout = UICollectionViewFlowLayout()
@@ -223,7 +223,7 @@ final class TopicVC: UIViewController, BaseViewProtocol {
                                     left: quantity.leadingInset.value,
                                     bottom: quantity.bottomInset.value,
                                     right: quantity.trailingInset.value)
-        layout.itemSize = .init(width: 150, height: 200) // TODO: 삭제 필요. width 동적으로 가져와야함
+        layout.itemSize = .init(width: 150, height: 200)
         return layout
     }
 
