@@ -9,7 +9,7 @@ import UIKit
 
 final class ProfileViewController: UIViewController {
 
-    let imageManager = ImageManager.shared
+    private let imageManager = ImageManager.shared
 
     private let imageView: UIImageView = {
         let imageView = UIImageView()

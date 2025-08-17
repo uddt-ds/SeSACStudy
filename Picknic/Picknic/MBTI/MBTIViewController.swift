@@ -12,9 +12,9 @@ import SnapKit
 //TODO: nav 2번 Push되는 문제 해결 필요
 final class MBTIViewController: UIViewController {
 
-    let imageManager = ImageManager.shared
+    private let imageManager = ImageManager.shared
 
-    let viewModel = MBTIViewModel()
+    private let viewModel = MBTIViewModel()
 
     private lazy var imageView: UIImageView = {
         let imageView = UIImageView()

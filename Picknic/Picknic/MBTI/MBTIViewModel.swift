@@ -67,7 +67,6 @@ final class MBTIViewModel {
                 }
             }
 
-            // TODO: 이거 어떻게 합치지? tuple로 받아야 하나
             if self.selectedIndexDictionary.count == 4 {
                 self.output.checkButtonState.value.btnCon = true
             } else {

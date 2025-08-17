@@ -10,12 +10,11 @@ import SnapKit
 
 final class TopicVC: UIViewController, BaseViewProtocol {
 
-    let viewModel = TopicViewModel()
+    private let viewModel = TopicViewModel()
 
     var firstTopicData: [PhotoResult] = []
     var secondTopicData: [PhotoResult] = []
     var thirdTopicData: [PhotoResult] = []
-
 
     private let headerLabel: UILabel = {
         let label = UILabel()
@@ -120,6 +119,14 @@ final class TopicVC: UIViewController, BaseViewProtocol {
         }
     }
 
+    @objc private func buttonTapped() {
+        let mbtiVC = MBTIViewController()
+        navigationController?.pushViewController(mbtiVC, animated: true)
+    }
+}
+
+// MARK: Setup UI
+extension TopicVC {
     func configureHierarchy() {
         view.addSubview(scrollView)
 
@@ -226,11 +233,6 @@ final class TopicVC: UIViewController, BaseViewProtocol {
         layout.itemSize = .init(width: 150, height: 200)
         return layout
     }
-
-    @objc private func buttonTapped() {
-        let mbtiVC = MBTIViewController()
-        navigationController?.pushViewController(mbtiVC, animated: true)
-    }
 }
 
 extension TopicVC: UICollectionViewDelegate, UICollectionViewDataSource {
@@ -251,7 +253,6 @@ extension TopicVC: UICollectionViewDelegate, UICollectionViewDataSource {
         switch collectionView {
         case firstTopicCollectionView:
             guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: TopicCell.identifier, for: indexPath) as? TopicCell else { return .init() }
-            print(#function, firstTopicData)
             cell.configureCell(with: firstTopicData[indexPath.item])
             return cell
         case secondTopicCollectionView:
@@ -307,7 +308,9 @@ extension TopicVC {
             }
         }
     }
+}
 
+extension TopicVC {
     enum TopicTitle: String {
         case header = "OUR TOPIC"
         case first = "골든아워"

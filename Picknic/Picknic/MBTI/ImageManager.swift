@@ -22,7 +22,7 @@ enum ImageSystem: String, CaseIterable {
     case image12
 }
 
-class ImageManager {
+final class ImageManager {
     static let shared = ImageManager()
 
     private init() { }

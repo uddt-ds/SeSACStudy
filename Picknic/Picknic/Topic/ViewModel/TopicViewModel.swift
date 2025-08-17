@@ -9,7 +9,7 @@ import Foundation
 
 final class TopicViewModel {
 
-    let networkManager = NetworkManager.shared
+    private let networkManager = NetworkManager.shared
 
     var input: Input
     var output: Output
