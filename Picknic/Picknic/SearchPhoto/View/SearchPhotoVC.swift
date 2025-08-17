@@ -102,6 +102,8 @@ final class SearchPhotoVC: UIViewController, BaseViewProtocol {
 
     private var searchPhotoData: SearchPhoto = .init(total: 0, totalPages: 0, results: [])
 
+    private let throttle = CustomThrottler(interval: 1)
+
     private lazy var buttonCollectionView: UICollectionView = {
         let view = UICollectionView(frame: .zero, collectionViewLayout: self.makeButtonCollectinoViewLayout())
         view.dataSource = self
@@ -330,10 +332,13 @@ extension SearchPhotoVC: UICollectionViewDelegate, UICollectionViewDataSource {
             viewModel.isInfiniteScroll = false
         }
 
-        if offset.y > (contentSizeHeight - collectionViewHeight - 180), !viewModel.isInfiniteScroll {
-            viewModel.isInfiniteScroll = true
-            viewModel.input.scrollDidChangeTrigger.value = ()
+        if offset.y > (contentSizeHeight - collectionViewHeight - 200), !viewModel.isInfiniteScroll {
+            //TODO: 어떻게 동작하는지 한번 더 공부하기
+            throttle.run {
+                self.viewModel.input.scrollDidChangeTrigger.value = ()
+            }
         }
+        print("isInfiniteScroll: ", viewModel.isInfiniteScroll)
     }
 
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
@@ -394,6 +399,8 @@ extension SearchPhotoVC: UICollectionViewDelegateFlowLayout {
 
 extension SearchPhotoVC: UISearchBarDelegate  {
     func searchBarTextDidEndEditing(_ searchBar: UISearchBar) {
-        viewModel.input.searchKeyword.value = searchBar.text
+        if viewModel.input.searchKeyword.value != searchBar.text {
+            viewModel.input.searchKeyword.value = searchBar.text
+        }
     }
 }

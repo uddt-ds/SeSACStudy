@@ -34,7 +34,7 @@ final class PhotoResultCell: UICollectionViewCell, BaseViewProtocol, ReusableVie
         button.addTarget(self, action: #selector(buttonTapped), for: .touchUpInside)
         button.configurationUpdateHandler = { btn in
             if btn.isSelected {
-                btn.configuration?.baseForegroundColor = .blue
+                btn.configuration?.baseForegroundColor = .main
             } else {
                 btn.configuration?.baseForegroundColor = .white
             }
@@ -104,5 +104,6 @@ final class PhotoResultCell: UICollectionViewCell, BaseViewProtocol, ReusableVie
     override func prepareForReuse() {
         super.prepareForReuse()
         heartButton.isSelected = false
+        imageView.image = nil
     }
 }

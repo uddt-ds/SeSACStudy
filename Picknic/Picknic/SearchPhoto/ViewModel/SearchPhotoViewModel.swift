@@ -9,8 +9,8 @@ import Foundation
 import Alamofire
 
 /*
- TODO: 최신순, 관련도순 정렬 시 데이터에 대한 정확도가 떨어짐
- 페이지 수가 지금 이상하게 늘어나는 중 디버깅이 필요함
+ TODO: 데이터 이상 없는지 디버깅 필요
+ insomnia에서 받아오는 raw 데이터와 swift에서 받아오는 raw 데이터가 차이가 있을 수 있는지 확인 필요
  */
 
 class SearchPhotoViewModel {
@@ -45,8 +45,6 @@ class SearchPhotoViewModel {
         middle = Middle()
         output = Output()
 
-
-        // TODO: 검색할 때 초기화 적용 필요
         input.searchKeyword.bind { [weak self] text in
             guard let self else { return }
             let page = self.middle.page.value
@@ -56,7 +54,6 @@ class SearchPhotoViewModel {
                 self.output.searchResult.value = nil
             }
 
-            // TODO: 만약에 유저가 최신순을 누른 상태로 검색을 한다면? 최신순인지 관련도순인지에 대한 데이터도 필요함
             if self.validate(text) {
                 fetch(self.input.sortType.value)
             }
@@ -64,7 +61,6 @@ class SearchPhotoViewModel {
             self.output.scrollGoToTop.value = ()
         }
 
-        // TODO: 페이지 2개씩 올라가는 문제 해결 필요
         input.scrollDidChangeTrigger.lazyBind { [weak self] _ in
             guard let self else { return }
 
@@ -113,12 +109,6 @@ class SearchPhotoViewModel {
 
                 self.isInfiniteScroll = false
 
-                // 새로운 검색하면 page 1로 바뀌는지 확인이 필요함
-    //            if !self.isInfiniteScroll {
-    //                self.middle.page.value = 1
-    //                self.output.searchResult.value = nil
-    //            }
-
                 switch response {
                 case .success(let data):
                     if page == 1 {
@@ -140,12 +130,6 @@ class SearchPhotoViewModel {
                 guard let self else { return }
 
                 self.isInfiniteScroll = false
-
-                // 새로운 검색하면 page 1로 바뀌는지 확인이 필요함
-    //            if !self.isInfiniteScroll {
-    //                self.middle.page.value = 1
-    //                self.output.searchResult.value = nil
-    //            }
 
                 switch response {
                 case .success(let data):
