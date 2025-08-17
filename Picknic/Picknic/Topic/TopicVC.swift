@@ -191,9 +191,24 @@ final class TopicVC: UIViewController, BaseViewProtocol {
         }
     }
 
+    // TODO: profileImageView 값 전달 필요
     private func setupNav() {
         navigationItem.title = ""
-        navigationItem.rightBarButtonItem = UIBarButtonItem(image: UIImage(systemName: "star"), style: .done, target: self, action: #selector(buttonTapped))
+
+        let gesture = UITapGestureRecognizer()
+        gesture.addTarget(self, action: #selector(buttonTapped))
+
+        let scaledImage = UIImage.image11.resizeImage(size: CGSize(width: 40, height: 40))
+        let imageView = UIImageView(image: scaledImage)
+        imageView.frame = CGRect(origin: .zero, size: scaledImage.size)
+        imageView.layer.cornerRadius = imageView.frame.size.width / 2
+        imageView.layer.borderWidth = 1
+        imageView.layer.borderColor = UIColor.main.cgColor
+        imageView.clipsToBounds = true
+        imageView.isUserInteractionEnabled = true
+        imageView.addGestureRecognizer(gesture)
+
+        navigationItem.rightBarButtonItem = UIBarButtonItem(customView: imageView)
         navigationController?.navigationBar.shadowImage = nil
     }
 
@@ -213,7 +228,8 @@ final class TopicVC: UIViewController, BaseViewProtocol {
     }
 
     @objc private func buttonTapped() {
-        print("buttonTapped")
+        let mbtiVC = MBTIViewController()
+        navigationController?.pushViewController(mbtiVC, animated: true)
     }
 }
 

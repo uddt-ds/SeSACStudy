@@ -17,7 +17,6 @@ final class TopicCell: UICollectionViewCell, ReusableViewProtocol, BaseViewProto
         imageView.layer.cornerRadius = 12
         imageView.isUserInteractionEnabled = true
         imageView.clipsToBounds = true
-        imageView.backgroundColor = .red
         return imageView
     }()
 
@@ -56,6 +55,7 @@ final class TopicCell: UICollectionViewCell, ReusableViewProtocol, BaseViewProto
 
     func configureCell(with data: PhotoResult) {
         guard let url = URL(string: data.urls.small) else { return }
+        imageView.kf.indicatorType = .activity
         imageView.kf.setImage(with: url)
 
         let container = AttributeContainer([
