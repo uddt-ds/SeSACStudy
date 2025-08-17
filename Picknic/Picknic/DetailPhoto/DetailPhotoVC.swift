@@ -15,7 +15,9 @@ final class DetailPhotoVC: UIViewController, BaseViewProtocol {
 
     var viewModel: DetailPhotoViewModel
 
-    var statisticData: Statistics = .init(id: "", downloads: .init(total: 0, historical: .init(values: [])), views: .init(total: 0, historical: .init(values: [])))
+    var statisticData: Statistics = .init(id: "",
+                                          downloads: .init(total: 0, historical: .init(values: [])),
+                                          views: .init(total: 0, historical: .init(values: [])))
 
     private let profileImageView: UIImageView = {
         let imageView = UIImageView()
@@ -286,14 +288,19 @@ final class DetailPhotoVC: UIViewController, BaseViewProtocol {
         }
     }
 
-    // 버튼 다시 선택하면 해당 버튼 지워야 함 (ViewModel로 보내기)
+    // ViewModel로 보내줘야 함
     @objc private func buttonTapped(_ sender: UIButton) {
         heartButton.isSelected.toggle()
         if heartButton.isSelected {
             heartButton.tintColor = .blue
+            if !UserModel.likesList.contains(statisticData.id) {
+                UserModel.updateLikeList(photoId: statisticData.id)
+            }
         } else {
             heartButton.tintColor = .gray
+            UserModel.likesList.remove(statisticData.id)
         }
+        print(UserModel.likesList)
     }
 }
 
