@@ -84,14 +84,6 @@ final class DetailPhotoVC: UIViewController, BaseViewProtocol {
         return imageView
     }()
 
-    private let infoHeaderLabel: UILabel = {
-        let label = UILabel()
-        label.text = MenuTitle.info.rawValue
-        label.textColor = .black
-        label.font = .boldSystemFont(ofSize: 16)
-        return label
-    }()
-
     private let sizeLabel: UILabel = {
         let label = UILabel()
         label.text = SubTitle.size.rawValue
@@ -156,11 +148,30 @@ final class DetailPhotoVC: UIViewController, BaseViewProtocol {
         return stackView
     }()
 
+    private let infoHeaderLabel: UILabel = {
+        let label = UILabel()
+        label.text = MenuTitle.info.rawValue
+        label.textColor = .black
+        label.font = .boldSystemFont(ofSize: 16)
+        return label
+    }()
+
     private lazy var infoDetailStackView: UIStackView = {
         let stackView = UIStackView(arrangedSubviews: [sizeStackView, totalViewsStackView, downLoadStackView])
         stackView.axis = .vertical
         stackView.spacing = 8
         stackView.distribution = .equalSpacing
+        return stackView
+    }()
+
+    private lazy var infoStackView: UIStackView = {
+        let stackView = UIStackView(arrangedSubviews: [infoHeaderLabel, infoDetailStackView])
+        stackView.axis = .horizontal
+        stackView.spacing = 40
+        stackView.distribution = .fill
+        stackView.alignment = .top
+        stackView.isLayoutMarginsRelativeArrangement = true
+        stackView.layoutMargins = UIEdgeInsets(top: 0, left: 20, bottom: 0, right: 20)
         return stackView
     }()
 
@@ -178,6 +189,35 @@ final class DetailPhotoVC: UIViewController, BaseViewProtocol {
         imageView.backgroundColor = .main
         return imageView
     }()
+
+    private lazy var chartStackView: UIStackView = {
+        let stackView = UIStackView(arrangedSubviews: [chartHeaderLabel, chartImageView])
+        stackView.axis = .horizontal
+        stackView.spacing = 40
+        stackView.distribution = .fill
+        stackView.alignment = .top
+        stackView.isLayoutMarginsRelativeArrangement = true
+        stackView.layoutMargins = UIEdgeInsets(top: 0, left: 20, bottom: 0, right: 20)
+        return stackView
+    }()
+
+    private lazy var contentStackView: UIStackView = {
+        let stackView = UIStackView(arrangedSubviews: [photoImageView, infoStackView, chartStackView])
+        stackView.axis = .vertical
+        stackView.spacing = 20
+        stackView.distribution = .fillProportionally
+        stackView.isLayoutMarginsRelativeArrangement = true
+        return stackView
+    }()
+
+    private lazy var scrollView: UIScrollView = {
+        let scrollView = UIScrollView()
+        scrollView.delegate = self
+        scrollView.showsVerticalScrollIndicator = false
+        return scrollView
+    }()
+
+    private let contentView = UIView()
 
     init(viewModel: DetailPhotoViewModel) {
         self.viewModel = viewModel
@@ -220,7 +260,9 @@ final class DetailPhotoVC: UIViewController, BaseViewProtocol {
     }
 
     func configureHierarchy() {
-        [topStackView, photoImageView, infoHeaderLabel, infoDetailStackView, chartHeaderLabel, chartImageView].forEach { view.addSubview($0) }
+        [topStackView, scrollView].forEach { view.addSubview($0) }
+        scrollView.addSubview(contentView)
+        contentView.addSubview(contentStackView)
     }
 
     func configureTopStackViewSubViewLayout() {
@@ -243,33 +285,19 @@ final class DetailPhotoVC: UIViewController, BaseViewProtocol {
             make.height.equalTo(44)
         }
 
-        photoImageView.snp.makeConstraints { make in
+        scrollView.snp.makeConstraints { make in
             make.top.equalTo(topStackView.snp.bottom)
-            make.directionalHorizontalEdges.equalTo(view.safeAreaLayoutGuide)
-            make.height.equalTo(200) // TODO: 수정 필요
+            make.directionalHorizontalEdges.bottom.equalTo(view.safeAreaLayoutGuide)
         }
 
-        infoHeaderLabel.snp.makeConstraints { make in
-            make.top.equalTo(photoImageView.snp.bottom).offset(20)
-            make.leading.equalTo(view.safeAreaLayoutGuide).inset(20)
+        contentView.snp.makeConstraints { make in
+            make.edges.equalToSuperview()
+            make.width.equalTo(scrollView.frameLayoutGuide)
         }
 
-        infoDetailStackView.snp.makeConstraints { make in
-            make.top.equalTo(infoHeaderLabel)
-            make.trailing.equalTo(view.safeAreaLayoutGuide).inset(20)
-            make.leading.equalTo(infoHeaderLabel).offset(100)
-        }
-
-        chartHeaderLabel.snp.makeConstraints { make in
-            make.top.equalTo(infoDetailStackView.snp.bottom).offset(20)
-            make.leading.equalTo(view.safeAreaLayoutGuide).inset(20)
-        }
-
-        chartImageView.snp.makeConstraints { make in
-            make.top.equalTo(chartHeaderLabel)
-            make.trailing.equalTo(view.safeAreaLayoutGuide).inset(20)
-            make.leading.equalTo(infoHeaderLabel).offset(100)
-            make.bottom.equalTo(view.safeAreaLayoutGuide)
+        contentStackView.snp.makeConstraints { make in
+            make.top.directionalHorizontalEdges.equalToSuperview()
+            make.bottom.equalToSuperview().offset(-20)
         }
     }
 
@@ -318,6 +346,10 @@ final class DetailPhotoVC: UIViewController, BaseViewProtocol {
     }
 }
 
+extension DetailPhotoVC: UIScrollViewDelegate {
+
+}
+
 extension DetailPhotoVC {
     enum MenuTitle: String {
         case info = "정보"
@@ -330,3 +362,5 @@ extension DetailPhotoVC {
         case downloads = "다운로드"
     }
 }
+
+
