@@ -71,7 +71,7 @@ enum ButtonCollectionViewQuantity: CaseIterable {
     }
 }
 
-enum PhotoCollectinoViewQuantity: CaseIterable {
+enum PhotoCollectionViewQuantity: CaseIterable {
     case lineSpacing
     case itemSpacing
     case leadingInset
@@ -140,8 +140,12 @@ final class SearchPhotoVC: UIViewController, BaseViewProtocol {
         configureView()
         setupNav()
         setupSearchController()
-        bindViewModel()
+        sortButtonToggle()
 
+        bindViewModel()
+    }
+
+    private func sortButtonToggle() {
         sortButton.isToggle = { [weak self] isToggle in
             guard let self else { return }
             print(isToggle)
@@ -177,7 +181,7 @@ final class SearchPhotoVC: UIViewController, BaseViewProtocol {
         sortButton.snp.makeConstraints { make in
             make.centerY.equalTo(buttonCollectionView)
             make.trailing.equalTo(view.safeAreaLayoutGuide)
-            make.height.equalTo(43)
+            make.height.equalTo(36)
             make.width.equalTo(70)
         }
 
@@ -240,7 +244,7 @@ final class SearchPhotoVC: UIViewController, BaseViewProtocol {
     }
 
     private func makePhotoCollectionViewLayout() -> UICollectionViewFlowLayout {
-        typealias quantity = PhotoCollectinoViewQuantity
+        typealias quantity = PhotoCollectionViewQuantity
 
         let layout = UICollectionViewFlowLayout()
         layout.scrollDirection = .vertical
@@ -279,11 +283,17 @@ extension SearchPhotoVC: UICollectionViewDelegate, UICollectionViewDataSource {
 
             if ColorSet.allCases[indexPath.item] == ColorSet.blank {
                 cell.setupBlankButton(with: indexPath.item)
+                cell.isUserInteractionEnabled = false
             }
             return cell
         case photoCollectionView:
             guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: PhotoResultCell.identifier, for: indexPath) as? PhotoResultCell else { return .init() }
             cell.configureCell(with: searchPhotoData.results[indexPath.item])
+            cell.heartButtonTapped = { [weak self] in
+                guard let self else { return }
+                UserModel.updateLikeList(photoId: searchPhotoData.results[indexPath.item].id)
+                print(UserModel.likesList)
+            }
             return cell
         default:
             return .init()

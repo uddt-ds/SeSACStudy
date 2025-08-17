@@ -20,6 +20,10 @@ final class ToggleButton: UIButton {
         setImage(UIImage(systemName: "text.badge.checkmark"), for: .normal)
         tintColor = .black
         backgroundColor = .white
+        layer.borderWidth = 1
+        layer.borderColor = UIColor.systemGray5.cgColor
+        layer.cornerRadius = 14
+        layer.maskedCorners = [.layerMinXMaxYCorner, .layerMinXMinYCorner]
         bind()
     }
 
