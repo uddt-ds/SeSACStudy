@@ -77,6 +77,7 @@ final class DetailPhotoVC: UIViewController, BaseViewProtocol {
     private let photoImageView: UIImageView = {
         let imageView = UIImageView()
         imageView.contentMode = .scaleAspectFill
+        imageView.clipsToBounds = true
         imageView.backgroundColor = .blue
         return imageView
     }()
@@ -270,13 +271,11 @@ final class DetailPhotoVC: UIViewController, BaseViewProtocol {
         profileImageView.kf.setImage(with: url)
         profileNameLabel.text = data.user.name
 
-        // TODO: 데이터 가공 필요
-        postDateLabel.text = data.createdAt
+        postDateLabel.text = data.createdDate
 
         guard let photoUrl = URL(string: data.urls.small) else { return }
         photoImageView.kf.setImage(with: photoUrl)
 
-        // TODO: 데이터 가공 필요
         sizeDetailLabel.text = "\(data.height) x \(data.width)"
         downLoadDetailLabel.text = "\(statisticsData.downloads.total)"
         totalViewsDetailLabel.text = "\(data.formatterLikes)"

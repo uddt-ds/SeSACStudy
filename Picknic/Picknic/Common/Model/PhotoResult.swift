@@ -31,6 +31,10 @@ extension PhotoResult {
     var formatterLikes: String {
         return NumberFormatManager.shared.getDemicalNum(likes)
     }
+
+    var createdDate: String {
+        return DateFormatManager.shared.getDate(createdAt) + " 게시일"
+    }
 }
 
 struct PhotoURL: Decodable {
