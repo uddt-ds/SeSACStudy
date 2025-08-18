@@ -39,7 +39,7 @@ final class DetailPhotoViewModel {
 
         let photoId = photoData.id
 
-        networkManager.callRequest(api: .statistics(imageID: photoId), type: Statistics.self) { [weak self] response in
+        networkManager.callRequest(api: .statistics(statisticsQuery: StatisticsQuery(imageID: photoId)), type: Statistics.self) { [weak self] response in
             guard let self else { return }
             switch response {
             case .success(let data):

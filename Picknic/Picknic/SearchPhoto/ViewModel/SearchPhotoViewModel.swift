@@ -18,7 +18,7 @@ final class SearchPhotoViewModel {
     private let networkManager = NetworkManager.shared
 
     var input: Input
-    var middle: Middle
+    private var middle: Middle
     var output: Output
 
     var isInfiniteScroll = false
@@ -104,7 +104,7 @@ final class SearchPhotoViewModel {
         let color = input.colorType.value
         if let color {
             print(color)
-            networkManager.callRequest(api: .search(query: keyword, page: page, perpage: perpage, orderBy: orderBy, color: color), type: SearchPhoto.self) { [weak self] response in
+            networkManager.callRequest(api: .search(searchQuery: .init(query: keyword, page: page, perpage: perpage, orderBy: orderBy, color: color)), type: SearchPhoto.self) { [weak self] response in
                 guard let self else { return }
 
                 self.isInfiniteScroll = false
@@ -113,6 +113,7 @@ final class SearchPhotoViewModel {
                 case .success(let data):
                     if page == 1 {
                         self.output.searchResult.value = data
+                        print(data)
                     } else if page >= 2 {
                         var currentData = self.output.searchResult.value ?? .init(total: 0, totalPages: 0, results: [])
                         currentData.results.append(contentsOf: data.results)
@@ -126,7 +127,7 @@ final class SearchPhotoViewModel {
                 }
             }
         } else {
-            networkManager.callRequest(api: .search(query: keyword, page: page, perpage: perpage, orderBy: orderBy, color: color), type: SearchPhoto.self) { [weak self] response in
+            networkManager.callRequest(api: .search(searchQuery: .init(query: keyword, page: page, perpage: perpage, orderBy: orderBy, color: color)), type: SearchPhoto.self) { [weak self] response in
                 guard let self else { return }
 
                 self.isInfiniteScroll = false
@@ -135,6 +136,7 @@ final class SearchPhotoViewModel {
                 case .success(let data):
                     if page == 1 {
                         self.output.searchResult.value = data
+                        print(data)
                     } else if page >= 2 {
                         var currentData = self.output.searchResult.value ?? .init(total: 0, totalPages: 0, results: [])
                         currentData.results.append(contentsOf: data.results)
