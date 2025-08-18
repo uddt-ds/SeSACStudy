@@ -7,9 +7,10 @@
 
 import UIKit
 import SnapKit
+import DGCharts
 
 /*
- TODO: 데이터 핸들링 리팩토링 필요
+ TODO: 차트 UI 변경이 필요
  */
 final class DetailPhotoVC: UIViewController, BaseViewProtocol {
 
@@ -183,15 +184,13 @@ final class DetailPhotoVC: UIViewController, BaseViewProtocol {
         return label
     }()
 
-    // TODO: 임시 이미지
-    private let chartImageView: UIImageView = {
-        let imageView = UIImageView()
-        imageView.backgroundColor = .main
-        return imageView
+    private let lineChartView: LineChartView = {
+        let chartView = LineChartView()
+        return chartView
     }()
 
     private lazy var chartStackView: UIStackView = {
-        let stackView = UIStackView(arrangedSubviews: [chartHeaderLabel, chartImageView])
+        let stackView = UIStackView(arrangedSubviews: [chartHeaderLabel, lineChartView])
         stackView.axis = .horizontal
         stackView.spacing = 40
         stackView.distribution = .fill
@@ -253,6 +252,7 @@ final class DetailPhotoVC: UIViewController, BaseViewProtocol {
             }
 
             configureUI(with: value, statisticsData: data)
+            makeCharts()
         }
     }
 
@@ -321,6 +321,10 @@ extension DetailPhotoVC {
             make.directionalHorizontalEdges.bottom.equalTo(view.safeAreaLayoutGuide)
         }
 
+        lineChartView.snp.makeConstraints { make in
+            make.height.equalTo(300)
+        }
+
         contentView.snp.makeConstraints { make in
             make.edges.equalToSuperview()
             make.width.equalTo(scrollView.frameLayoutGuide)
@@ -351,6 +355,34 @@ extension DetailPhotoVC {
             heartButton.isSelected = true
         }
     }
+
+    func makeCharts() {
+        var downloadChartEntry = [ChartDataEntry]()
+        var viewsChartEntry = [ChartDataEntry]()
+
+        let downloadData = self.statisticData.downloads.historical.values
+        let viewsData = self.statisticData.views.historical.values
+
+        for i in downloadData.indices {
+            let value = ChartDataEntry(x: Double(i), y: Double(downloadData[i].value))
+            downloadChartEntry.append(value)
+        }
+
+        for i in viewsData.indices {
+            let value = ChartDataEntry(x: Double(i), y: Double(viewsData[i].value))
+            viewsChartEntry.append(value)
+        }
+
+        let downloadLine = LineChartDataSet(entries: downloadChartEntry, label: "downloads")
+        downloadLine.colors = [NSUIColor.blue]
+
+        let viewsLine = LineChartDataSet(entries: viewsChartEntry, label: "views")
+        viewsLine.colors = [NSUIColor.green]
+
+
+        let data = LineChartData(dataSets: [downloadLine, viewsLine])
+        lineChartView.data = data
+    }
 }
 
 extension DetailPhotoVC {
@@ -365,5 +397,6 @@ extension DetailPhotoVC {
         case downloads = "다운로드"
     }
 }
+
 
 
