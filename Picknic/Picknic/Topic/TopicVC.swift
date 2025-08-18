@@ -7,6 +7,7 @@
 
 import UIKit
 import SnapKit
+import SkeletonView
 
 final class TopicVC: UIViewController, BaseViewProtocol {
 
@@ -102,20 +103,28 @@ final class TopicVC: UIViewController, BaseViewProtocol {
         configureHierarchy()
         configureLayout()
         configureView()
+        configureSkeleton()
         setupNav()
 
         bindViewModel()
     }
 
     private func bindViewModel() {
+        [firstTopicCollectionView, secondTopicCollectionView, thirdTopicCollectionView].forEach { $0.showGradientSkeleton() }
         viewModel.input.viewDidLoadTrigger.value = ()
 
-        viewModel.output.totalData.bind { data in
+        viewModel.output.totalData.bind { [weak self] data in
+            guard let self else { return }
             self.firstTopicData = data.first
             self.secondTopicData = data.second
             self.thirdTopicData = data.third
 
-            [self.firstTopicCollectionView, self.secondTopicCollectionView, self.thirdTopicCollectionView].forEach { $0.reloadData() }
+            [self.firstTopicCollectionView, self.secondTopicCollectionView, self.thirdTopicCollectionView].forEach { $0.stopSkeletonAnimation()
+                $0.reloadData()
+                $0.hideSkeleton(reloadDataAfter: true, transition: .crossDissolve(1.0))
+            }
+//
+//            [self.firstTopicCollectionView, self.secondTopicCollectionView, self.thirdTopicCollectionView].forEach { $0.reloadData() }
         }
     }
 
@@ -286,6 +295,26 @@ extension TopicVC: UICollectionViewDelegate, UICollectionViewDataSource {
             return
         }
     }
+}
+
+extension TopicVC {
+    private func configureSkeleton() {
+        [firstTopicCollectionView, secondTopicCollectionView, thirdTopicCollectionView].forEach {
+            $0.isSkeletonable = true
+        }
+    }
+}
+
+extension TopicVC: SkeletonCollectionViewDataSource {
+    func collectionSkeletonView(_ skeletonView: UICollectionView, cellIdentifierForItemAt indexPath: IndexPath) -> SkeletonView.ReusableCellIdentifier {
+        return TopicCell.identifier
+    }
+
+    func collectionSkeletonView(_ skeletonView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
+        return 10
+    }
+
+
 }
 
 extension TopicVC {

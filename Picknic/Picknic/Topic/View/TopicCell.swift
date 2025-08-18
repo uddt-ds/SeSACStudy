@@ -27,6 +27,7 @@ final class TopicCell: UICollectionViewCell, ReusableViewProtocol, BaseViewProto
         configureHierarchy()
         configureLayout()
         configureView()
+        configureSkeleton()
     }
 
     @available(*, unavailable)
@@ -55,7 +56,7 @@ final class TopicCell: UICollectionViewCell, ReusableViewProtocol, BaseViewProto
 
     func configureCell(with data: PhotoResult) {
         guard let url = URL(string: data.urls.small) else { return }
-        imageView.kf.indicatorType = .activity
+//        imageView.kf.indicatorType = .activity
         imageView.kf.setImage(with: url)
 
         let container = AttributeContainer([
@@ -64,6 +65,13 @@ final class TopicCell: UICollectionViewCell, ReusableViewProtocol, BaseViewProto
         ])
         let attributedTitle = AttributedString("\(data.formatterLikes)", attributes: container)
         button.configuration?.attributedTitle = attributedTitle
+    }
+}
+
+extension TopicCell {
+    private func configureSkeleton() {
+        isSkeletonable = true
+        imageView.isSkeletonable = true
     }
 }
 

@@ -13,6 +13,7 @@
 		9B50877B2E4DC05600AA911B /* .gitignore in Resources */ = {isa = PBXBuildFile; fileRef = 9B50877A2E4DC05600AA911B /* .gitignore */; };
 		9B5088122E4DC9B900AA911B /* SnapKit in Frameworks */ = {isa = PBXBuildFile; productRef = 9B5088112E4DC9B900AA911B /* SnapKit */; };
 		9B853E062E5215B30073E7BA /* Toast in Frameworks */ = {isa = PBXBuildFile; productRef = 9B853E052E5215B30073E7BA /* Toast */; };
+		9B8540E82E530D480073E7BA /* SkeletonView in Frameworks */ = {isa = PBXBuildFile; productRef = 9B8540E72E530D480073E7BA /* SkeletonView */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -52,6 +53,7 @@
 				9B0CD15A2E4F81E8004C59CD /* Kingfisher in Frameworks */,
 				9B5088122E4DC9B900AA911B /* SnapKit in Frameworks */,
 				9B0CD0CA2E4F273F004C59CD /* Alamofire in Frameworks */,
+				9B8540E82E530D480073E7BA /* SkeletonView in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -100,6 +102,7 @@
 				9B0CD0C92E4F273F004C59CD /* Alamofire */,
 				9B0CD1592E4F81E8004C59CD /* Kingfisher */,
 				9B853E052E5215B30073E7BA /* Toast */,
+				9B8540E72E530D480073E7BA /* SkeletonView */,
 			);
 			productName = Picknic;
 			productReference = 9B50874F2E4DBAAB00AA911B /* Picknic.app */;
@@ -135,6 +138,7 @@
 				9B0CD0C82E4F273F004C59CD /* XCRemoteSwiftPackageReference "Alamofire" */,
 				9B0CD1582E4F81E8004C59CD /* XCRemoteSwiftPackageReference "Kingfisher" */,
 				9B853E042E5215B30073E7BA /* XCRemoteSwiftPackageReference "Toast-Swift" */,
+				9B8540E62E530D480073E7BA /* XCRemoteSwiftPackageReference "SkeletonView" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 9B5087502E4DBAAB00AA911B /* Products */;
@@ -190,6 +194,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 4G4JFKFU2U;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Picknic/App/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "픽크닉_이다성";
@@ -224,6 +229,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 4G4JFKFU2U;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Picknic/App/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "픽크닉_이다성";
@@ -426,6 +432,14 @@
 				minimumVersion = 5.1.1;
 			};
 		};
+		9B8540E62E530D480073E7BA /* XCRemoteSwiftPackageReference "SkeletonView" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/Juanpe/SkeletonView.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.31.0;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -448,6 +462,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 9B853E042E5215B30073E7BA /* XCRemoteSwiftPackageReference "Toast-Swift" */;
 			productName = Toast;
+		};
+		9B8540E72E530D480073E7BA /* SkeletonView */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9B8540E62E530D480073E7BA /* XCRemoteSwiftPackageReference "SkeletonView" */;
+			productName = SkeletonView;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};
