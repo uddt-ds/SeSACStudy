@@ -16,6 +16,12 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         guard let scene = (scene as? UIWindowScene) else { return }
         window = UIWindow(windowScene: scene)
 
+        let appearance = UINavigationBarAppearance()
+        appearance.configureWithOpaqueBackground()
+        appearance.shadowColor = .white
+        
+        UINavigationBar.appearance().standardAppearance = appearance
+
 
         UITabBar.appearance().scrollEdgeAppearance = .init()
         UITabBar.appearance().tintColor = .gray
