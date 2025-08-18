@@ -9,7 +9,6 @@ import UIKit
 import SnapKit
 import Toast
 
-
 final class SearchPhotoVC: UIViewController, BaseViewProtocol {
 
     private let searchController = UISearchController()
@@ -71,7 +70,6 @@ final class SearchPhotoVC: UIViewController, BaseViewProtocol {
     private func sortButtonToggle() {
         sortButton.isToggle = { [weak self] isToggle in
             guard let self else { return }
-            print(isToggle)
             if isToggle {
                 self.viewModel.input.sortType.value = OrderBy.latest.rawValue
                 self.photoCollectionView.reloadData()
@@ -266,7 +264,6 @@ extension SearchPhotoVC: UICollectionViewDelegate, UICollectionViewDataSource {
                 self.viewModel.input.scrollDidChangeTrigger.value = ()
             }
         }
-        print("isInfiniteScroll: ", viewModel.isInfiniteScroll)
     }
 
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {

@@ -81,7 +81,6 @@ final class ColorButtonCell: UICollectionViewCell, BaseViewProtocol, ReusableVie
     }
 
     func selectedButton(isSelected: Bool) {
-        print(isSelected)
         if isSelected {
             buttonStackView.backgroundColor = .blue
             label.textColor = .white
@@ -93,6 +92,11 @@ final class ColorButtonCell: UICollectionViewCell, BaseViewProtocol, ReusableVie
 
     override func prepareForReuse() {
         super.prepareForReuse()
+        if label.text == ColorSet.blank.rawValue {
+            isUserInteractionEnabled = false
+        } else {
+            isUserInteractionEnabled = true
+        }
         buttonStackView.backgroundColor = .lightGray
     }
 }
