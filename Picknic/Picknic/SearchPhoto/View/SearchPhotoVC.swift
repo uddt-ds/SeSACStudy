@@ -19,7 +19,7 @@ final class SearchPhotoVC: UIViewController, BaseViewProtocol {
 
     private var searchPhotoData: SearchPhoto = .init(total: 0, totalPages: 0, results: [])
 
-    private let throttle = CustomThrottler(interval: 1)
+    private let throttle = CustomThrottler(interval: 0.5)
 
     private lazy var buttonCollectionView: UICollectionView = {
         let view = UICollectionView(frame: .zero, collectionViewLayout: self.makeButtonCollectinoViewLayout())
@@ -66,7 +66,6 @@ final class SearchPhotoVC: UIViewController, BaseViewProtocol {
         addObserverNotificationCenter()
     }
 
-    // TODO: 이 로직도 ViewModel로 옮길 수 있지 않을까?
     private func sortButtonToggle() {
         sortButton.isToggle = { [weak self] isToggle in
             guard let self else { return }
@@ -258,7 +257,7 @@ extension SearchPhotoVC: UICollectionViewDelegate, UICollectionViewDataSource {
             viewModel.isInfiniteScroll = false
         }
 
-        if offset.y > (contentSizeHeight - collectionViewHeight - 200), !viewModel.isInfiniteScroll {
+        if offset.y > (contentSizeHeight - collectionViewHeight - 400), !viewModel.isInfiniteScroll {
             //TODO: 어떻게 동작하는지 한번 더 공부하기
             throttle.run {
                 self.viewModel.input.scrollDidChangeTrigger.value = ()
@@ -300,6 +299,7 @@ extension SearchPhotoVC: UICollectionViewDelegate, UICollectionViewDataSource {
     }
 }
 
+// Configure 같은거 만들어서 static한 기기 사이즈를 만들어서 사용하는 것도 방법
 extension SearchPhotoVC: UICollectionViewDelegateFlowLayout {
 
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {

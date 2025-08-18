@@ -28,6 +28,8 @@ final class SearchPhotoViewModel {
     var output: Output
 
     var isInfiniteScroll = false
+
+    var totalCount: Int?
     var totalPage: Int?
 
     struct Input {
@@ -73,8 +75,8 @@ final class SearchPhotoViewModel {
             guard let self else { return }
 
             guard let totalPage else { return }
-            guard let data = output.searchResult.value else { return }
-            if totalPage >= self.middle.page.value && data.results.count > 20 {
+            guard let totalCount else { return }
+            if totalPage >= self.middle.page.value, totalCount >= 21 {
                 self.middle.page.value += 1
             }
             print(middle.page.value)
@@ -95,7 +97,7 @@ final class SearchPhotoViewModel {
         }
 
         // page를 binding하니까 page에서도 fetch가 일어남
-        middle.page.lazyBind { page in
+        middle.page.bind { page in
             self.fetch(self.input.sortType.value, page: page)
         }
     }
@@ -129,6 +131,7 @@ final class SearchPhotoViewModel {
                     if page == 1 {
                         self.output.searchResult.value = data
                         self.totalPage = data.totalPages
+                        self.totalCount = data.total
                         dump(data)
                     } else if page >= 2 {
                         var currentData = self.output.searchResult.value ?? .init(total: 0, totalPages: 0, results: [])
@@ -153,6 +156,7 @@ final class SearchPhotoViewModel {
                     if page == 1 {
                         self.output.searchResult.value = data
                         self.totalPage = data.totalPages
+                        self.totalCount = data.total
                         dump(data)
                     } else if page >= 2 {
                         var currentData = self.output.searchResult.value ?? .init(total: 0, totalPages: 0, results: [])
