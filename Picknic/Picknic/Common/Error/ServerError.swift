@@ -7,14 +7,13 @@
 
 import Foundation
 
-enum ServerError: Error {
-    case badRequest
-    case unauthorized
-    case forbidden
-    case notFound
-    case serverError
-    case serverError2
-    case unknownError
+enum ServerError: Int,  Error {
+    case badRequest = 400
+    case unauthorized = 401
+    case forbidden = 403
+    case notFound = 404
+    case serverError = 500
+    case unknownError = 503
 }
 
 extension ServerError: LocalizedError {
@@ -29,8 +28,6 @@ extension ServerError: LocalizedError {
         case .notFound:
             return NSLocalizedString(String(describing: self), comment: "요청된 리소스가 존재하지 않습니다")
         case .serverError:
-            return NSLocalizedString(String(describing: self), comment: "서버 에러입니다")
-        case .serverError2:
             return NSLocalizedString(String(describing: self), comment: "서버 에러입니다")
         case .unknownError:
             return NSLocalizedString(String(describing: self), comment: "알 수 없는 에러입니다")

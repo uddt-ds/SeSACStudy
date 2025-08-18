@@ -8,7 +8,7 @@
 import Foundation
 import Alamofire
 
-class NetworkManager {
+final class NetworkManager {
 
     static let shared = NetworkManager()
 
@@ -21,11 +21,10 @@ class NetworkManager {
                    parameters: api.parameter,
                    encoding: URLEncoding(destination: .queryString),
                    headers: api.headers)
+        .validate(statusCode: 200..<300)
         .responseDecodable(of: T.self) { responseData in
-            guard let statusCode = responseData.response?.statusCode else {
-                completion(.failure(NetworkError.invalidURL))
-                return
-            }
+
+            let statusCode = responseData.response?.statusCode ?? 503
 
             switch statusCode {
             case 200..<300:
@@ -36,20 +35,13 @@ class NetworkManager {
                     print(error.localizedDescription)
                     completion(.failure(NetworkError.failDecoding))
                 }
-            case 400:
-                completion(.failure(ServerError.badRequest))
-            case 401:
-                completion(.failure(ServerError.unauthorized))
-            case 403:
-                completion(.failure(ServerError.forbidden))
-            case 404:
-                completion(.failure(ServerError.notFound))
-            case 500:
-                completion(.failure(ServerError.serverError))
-            case 503:
-                completion(.failure(ServerError.serverError2))
+
+            case 400..<504:
+                let error = ServerError(rawValue: statusCode)
+                print(error?.errorDescription ?? "알 수 없는 에러입니다")
+
             default:
-                completion(.failure(ServerError.unknownError))
+                print(ServerError.unknownError.errorDescription ?? "알 수 없는 에러입니다")
             }
         }
     }
