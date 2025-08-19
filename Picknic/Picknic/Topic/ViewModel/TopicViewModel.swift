@@ -47,7 +47,7 @@ final class TopicViewModel {
         let dispatchGroup = DispatchGroup()
 
         dispatchGroup.enter()
-        networkManager.callRequest(api: .topic(topicQuery: .init(topicID: TopicID.business_work.rawValue, page: 1, perpage: 10)), type: [PhotoResult].self) { [weak self] responseData in
+        networkManager.callRequest(api: .topic(topicQuery: .init(topicID: TopicID.golden_hour.rawValue, page: 1, perpage: 10)), type: [PhotoResult].self) { [weak self] responseData in
             guard let self else { return }
             switch responseData {
             case .success(let data):
@@ -59,7 +59,7 @@ final class TopicViewModel {
         }
 
         dispatchGroup.enter()
-        networkManager.callRequest(api: .topic(topicQuery: .init(topicID: TopicID.golden_hour.rawValue, page: 1, perpage: 10)), type: [PhotoResult].self) { [weak self] responseData in
+        networkManager.callRequest(api: .topic(topicQuery: .init(topicID: TopicID.business_work.rawValue, page: 1, perpage: 10)), type: [PhotoResult].self) { [weak self] responseData in
             guard let self else { return }
             switch responseData {
             case .success(let data):
