@@ -8,6 +8,8 @@
 import UIKit
 import SnapKit
 import Toast
+import RxSwift
+import RxCocoa
 
 final class SearchPhotoVC: UIViewController, BaseViewProtocol {
 
@@ -15,16 +17,18 @@ final class SearchPhotoVC: UIViewController, BaseViewProtocol {
 
     private let viewModel = SearchPhotoViewModel()
 
+    let disposeBag = DisposeBag()
+
     private var selectedIndexPath: IndexPath?
 
     private var searchPhotoData: SearchPhoto = .init(total: 0, totalPages: 0, results: [])
 
     private let throttle = CustomThrottler(interval: 0.5)
 
+    private let scrollDidChangeTrigger = PublishRelay<Void>()
+
     private lazy var buttonCollectionView: UICollectionView = {
         let view = UICollectionView(frame: .zero, collectionViewLayout: self.makeButtonCollectinoViewLayout())
-        view.dataSource = self
-        view.delegate = self
         view.register(ColorButtonCell.self, forCellWithReuseIdentifier: ColorButtonCell.identifier)
         view.showsHorizontalScrollIndicator = false
         return view
@@ -37,8 +41,8 @@ final class SearchPhotoVC: UIViewController, BaseViewProtocol {
 
     private lazy var photoCollectionView: UICollectionView = {
         let view = UICollectionView(frame: .zero, collectionViewLayout: self.makePhotoCollectionViewLayout())
-        view.dataSource = self
-        view.delegate = self
+//        view.dataSource = self
+//        view.delegate = self
         view.register(PhotoResultCell.self, forCellWithReuseIdentifier: PhotoResultCell.identifier)
         view.showsVerticalScrollIndicator = false
         return view
@@ -62,39 +66,66 @@ final class SearchPhotoVC: UIViewController, BaseViewProtocol {
         setupSearchController()
 
         sortButtonToggle()
-        bindViewModel()
+//        bindViewModel()
+        bind()
         addObserverNotificationCenter()
     }
 
+    override func viewDidLayoutSubviews() {
+        updatePhotoCollectionViewLayout()
+    }
+
+    private func bind() {
+
+        // 수평 컬렉션뷰 선택된 애의 값이 colorType에 들어가야함
+        let currentPage = BehaviorSubject(value: 1)
+        let colorType = BehaviorSubject(value: "")
+
+        let searchText = BehaviorSubject(value: "")
+
+        searchController.searchBar.rx.searchButtonClicked
+            .withLatestFrom(searchController.searchBar.rx.text.orEmpty)
+            .bind(with: self) { owner, value in
+                searchText.onNext(value)
+            }
+            .disposed(by: disposeBag)
+
+        let input = SearchPhotoViewModel.Input(searchKeyword: searchText, sortButtonState: sortButton.rx.buttonState, colorType: colorType, scrollDidChangeTrigger: scrollDidChangeTrigger, currentPage: currentPage)
+
+        let output = viewModel.transform(input: input)
+
+        output.colorButtonData
+            .bind(to: buttonCollectionView.rx.items(cellIdentifier: ColorButtonCell.identifier, cellType: ColorButtonCell.self)) { row, element, cell in
+                print(element)
+                cell.configureButton(with: element)
+            }
+            .disposed(by: disposeBag)
+
+        buttonCollectionView.rx.modelSelected(ColorSet.self)
+            .bind(with: self) { owner, value in
+                colorType.onNext(value.rawValue)
+                print(value.rawValue)
+            }
+            .disposed(by: disposeBag)
+
+        output.searchResult
+            .bind(to: photoCollectionView.rx.items(cellIdentifier: PhotoResultCell.identifier, cellType: PhotoResultCell.self)) { row, element, cell in
+                cell.configureCell(with: element)
+            }
+            .disposed(by: disposeBag)
+    }
+
     private func sortButtonToggle() {
-        sortButton.isToggle = { [weak self] isToggle in
-            guard let self else { return }
-            if isToggle {
-                self.viewModel.input.sortType.value = OrderBy.latest.rawValue
-                self.photoCollectionView.reloadData()
-            } else {
-                self.viewModel.input.sortType.value = OrderBy.relevant.rawValue
-                self.photoCollectionView.reloadData()
-            }
-        }
+        sortButton.isSelected.toggle()
     }
 
-    private func bindViewModel() {
-        viewModel.output.searchResult.lazyBind { [weak self] response in
-            guard let self else { return }
-            guard let response else { return }
-            self.searchPhotoData = response
-            self.photoCollectionView.reloadData()
-            showPlaceHolderLabel()
-        }
-
-        viewModel.output.scrollGoToTop.lazyBind { [weak self] _ in
-            guard let self else { return }
-            if searchPhotoData.results.count != 0 {
-                self.photoCollectionView.scrollToItem(at: IndexPath(item: 0, section: 0), at: .top, animated: true)
-            }
-        }
-    }
+//        viewModel.output.scrollGoToTop.lazyBind { [weak self] _ in
+//            guard let self else { return }
+//            if searchPhotoData.results.count != 0 {
+//                self.photoCollectionView.scrollToItem(at: IndexPath(item: 0, section: 0), at: .top, animated: true)
+//            }
+//        }
+//    }
 
     private func addObserverNotificationCenter() {
         NotificationCenter.default.addObserver(self,
@@ -131,7 +162,7 @@ extension SearchPhotoVC {
     private func setupSearchController() {
         searchController.searchBar.placeholder = "키워드 검색"
         searchController.automaticallyShowsCancelButton = false
-        searchController.searchBar.delegate = self
+//        searchController.searchBar.delegate = self
         searchController.hidesNavigationBarDuringPresentation = false
         self.navigationItem.searchController = searchController
     }
@@ -181,6 +212,9 @@ extension SearchPhotoVC {
                                     left: quantity.leadingInset.value,
                                     bottom: quantity.bottomInset.value,
                                     right: quantity.trailingInset.value)
+
+        layout.itemSize = .init(width: 80, height: 34)
+
         return layout
     }
 
@@ -197,56 +231,32 @@ extension SearchPhotoVC {
                                     right: quantity.trailingInset.value)
         return layout
     }
-}
 
-extension SearchPhotoVC: UICollectionViewDelegate, UICollectionViewDataSource {
-    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        switch collectionView {
-        case buttonCollectionView:
-            return ColorSet.allCases.count
-        case photoCollectionView:
-            return searchPhotoData.results.count
-        default:
-            return 0
-        }
+    private func updatePhotoCollectionViewLayout() {
+        typealias quantity = PhotoCollectionViewQuantity
+
+        let layout = UICollectionViewFlowLayout()
+        layout.scrollDirection = .vertical
+        layout.minimumLineSpacing = quantity.lineSpacing.value
+        layout.minimumInteritemSpacing = quantity.itemSpacing.value
+        layout.sectionInset = .init(top: quantity.topInset.value,
+                                    left: quantity.leadingInset.value,
+                                    bottom: quantity.bottomInset.value,
+                                    right: quantity.trailingInset.value)
+
+        let deviceHeight = view.safeAreaLayoutGuide.layoutFrame.height
+        let deviceWidth = view.safeAreaLayoutGuide.layoutFrame.width
+
+        let cellHeight = (deviceHeight - (quantity.lineSpacing.value * 2)) / 2.5
+        let cellWidth = (deviceWidth - (quantity.itemSpacing.value)) / 2
+        print(cellHeight)
+        print(cellWidth)
+
+        layout.itemSize = .init(width: cellWidth, height: cellHeight)
+
+        photoCollectionView.collectionViewLayout = layout
+        photoCollectionView.collectionViewLayout.invalidateLayout()
     }
-    
-    func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        switch collectionView {
-        case buttonCollectionView:
-            guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: ColorButtonCell.identifier, for: indexPath) as? ColorButtonCell else { return .init() }
-            cell.configureButton(with: ColorSet.allCases[indexPath.item])
-
-            let isSelected = (indexPath == selectedIndexPath)
-            cell.selectedButton(isSelected: isSelected)
-
-            if ColorSet.allCases[indexPath.item] == ColorSet.blank {
-                cell.setupBlankButton(with: indexPath.item)
-                cell.isUserInteractionEnabled = false
-            }
-            return cell
-        case photoCollectionView:
-            guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: PhotoResultCell.identifier, for: indexPath) as? PhotoResultCell else { return .init() }
-            cell.configureCell(with: searchPhotoData.results[indexPath.item])
-            let likeListData = UserModel.likesList
-
-            for likeData in likeListData {
-                if searchPhotoData.results[indexPath.item].id == likeData {
-                    cell.isAlreadyLike(isSelected: true)
-                }
-            }
-
-            cell.heartButtonTapped = { [weak self] in
-                guard let self else { return }
-                UserModel.updateLikeList(photoId: searchPhotoData.results[indexPath.item].id)
-                print(UserModel.likesList)
-            }
-            return cell
-        default:
-            return .init()
-        }
-    }
-
 
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
         let contentSizeHeight = self.photoCollectionView.contentSize.height
@@ -258,75 +268,18 @@ extension SearchPhotoVC: UICollectionViewDelegate, UICollectionViewDataSource {
         }
 
         if offset.y > (contentSizeHeight - collectionViewHeight - 400), !viewModel.isInfiniteScroll {
-            //TODO: 어떻게 동작하는지 한번 더 공부하기
-            throttle.run {
-                self.viewModel.input.scrollDidChangeTrigger.value = ()
+            throttle.run { [weak self] in
+                guard let self else { return }
+                self.scrollDidChangeTrigger.accept(())
             }
         }
     }
-
-    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-        switch collectionView {
-        case buttonCollectionView:
-            if viewModel.input.colorType.value == nil {
-                viewModel.input.colorType.value = ColorSet.allCases[indexPath.item].rawValue
-                selectedIndexPath = indexPath
-                collectionView.reloadItems(at: [indexPath])
-            } else if viewModel.input.colorType.value != nil &&
-                        viewModel.input.colorType.value == ColorSet.allCases[indexPath.item].rawValue {
-                viewModel.input.colorType.value = nil
-                selectedIndexPath = nil
-                collectionView.reloadItems(at: [indexPath])
-            } else if viewModel.input.colorType.value != ColorSet.allCases[indexPath.item].rawValue {
-                let previousIndexPath = selectedIndexPath
-                selectedIndexPath = indexPath
-                viewModel.input.colorType.value = ColorSet.allCases[indexPath.item].rawValue
-                if let selectedIndexPath, let previousIndexPath {
-                    collectionView.reloadItems(at: [
-                        previousIndexPath,
-                        selectedIndexPath
-                    ])
-                }
-        }
-        case photoCollectionView:
-            let viewModel = DetailPhotoViewModel(photoData: searchPhotoData.results[indexPath.item])
-            let vc = DetailPhotoVC(viewModel: viewModel)
-            navigationItem.backButtonTitle = ""
-            navigationController?.pushViewController(vc, animated: true)
-        default:
-            return
-        }
-    }
 }
 
-// Configure 같은거 만들어서 static한 기기 사이즈를 만들어서 사용하는 것도 방법
-extension SearchPhotoVC: UICollectionViewDelegateFlowLayout {
-
-    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
-        switch collectionView {
-        case buttonCollectionView:
-            return .init(width: (view.frame.width) / 5, height: 32)
-        case photoCollectionView:
-            return .init(width: ((collectionView.frame.width) / 2) - PhotoCollectionViewQuantity.lineSpacing.value,
-                         height: (collectionView.frame.height) / 2.3 - PhotoCollectionViewQuantity.itemSpacing.value)
-        default:
-            return .zero
-        }
-    }
-
-    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumLineSpacingForSectionAt section: Int) -> CGFloat {
-        return PhotoCollectionViewQuantity.lineSpacing.value
-    }
-
-    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumInteritemSpacingForSectionAt section: Int) -> CGFloat {
-        return PhotoCollectionViewQuantity.itemSpacing.value
-    }
-}
-
-extension SearchPhotoVC: UISearchBarDelegate  {
-    func searchBarTextDidEndEditing(_ searchBar: UISearchBar) {
-        if viewModel.input.searchKeyword.value != searchBar.text {
-            viewModel.input.searchKeyword.value = searchBar.text
+extension Reactive where Base: UIButton {
+    var buttonState: Observable<Bool> {
+        return base.rx.tap.map { _ in
+            return base.isSelected
         }
     }
 }

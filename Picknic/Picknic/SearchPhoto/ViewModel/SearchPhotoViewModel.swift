@@ -7,169 +7,214 @@
 
 import Foundation
 import Alamofire
-
-/*
-TODO:
- middle의 page는 그냥 내부 프로퍼티처럼 쓰고 있는데,
- page의 역할을 정해준다면 페이지가 바뀌면 데이터를 fetch하고 searchResult를 업데이트 해주는 역할로 정해줘도 될거 같음
-
- 페이지가 바뀌면 데이터를 fetch하게 했더니 sortType이 바뀌어도 fetch를 하고
- page가 바뀌어도 fetch하는 상황이 발생(이벤트가 2번 발생함)
-
- 뭔가 묶어서 실행시키게 하거나 다른 방법을 선택해야할거 같은데
- */
+import RxSwift
+import RxCocoa
 
 final class SearchPhotoViewModel {
 
     private let networkManager = NetworkManager.shared
 
-    var input: Input
-    private var middle: Middle
-    var output: Output
+    let disposeBag = DisposeBag()
+
+    struct Input {
+        var searchKeyword: BehaviorSubject<String>
+        var sortButtonState: Observable<Bool>
+        var colorType: BehaviorSubject<String>
+        var scrollDidChangeTrigger: PublishRelay<Void>
+        var currentPage: BehaviorSubject<Int>
+    }
+
+    struct State {
+        var page: BehaviorRelay<Int>
+    }
+
+    struct Output {
+        var colorButtonData = BehaviorRelay(value: ColorSet.allCases)
+        var invalidInput: BehaviorRelay<String>
+        var searchResult: BehaviorRelay<[PhotoResult]>
+        var scrollGoToTop: BehaviorRelay<Void>
+    }
 
     var isInfiniteScroll = false
 
     var totalCount: Int?
     var totalPage: Int?
 
-    struct Input {
-        var searchKeyword: MyObservable<String?> = MyObservable(value: nil)
-        var sortType: MyObservable<String> = MyObservable(value: OrderBy.relevant.rawValue)
-        var scrollDidChangeTrigger: MyObservable<Void?> = MyObservable(value: nil)
-        var colorType: MyObservable<String?> = MyObservable(value: nil)
-    }
+    func transform(input: Input) -> Output {
 
-    struct Middle {
-        var page: MyObservable<Int> = MyObservable(value: 1)
-    }
+        let invalidInput = BehaviorRelay(value: "")
 
-    struct Output {
-        var invalidInput: MyObservable<String> = MyObservable(value: "")
-        var searchResult: MyObservable<SearchPhoto?> = MyObservable(value: nil)
-        var scrollGoToTop: MyObservable<Void?> = MyObservable(value: nil)
-    }
+        let state = State(page: .init(value: 1))
 
-    init() {
-        input = Input()
-        middle = Middle()
-        output = Output()
+        let sortType = BehaviorRelay<String>(value: "")
 
-        input.searchKeyword.bind { [weak self] text in
-            guard let self else { return }
-            let page = self.middle.page.value
+        let searchResult = BehaviorRelay<[PhotoResult]>(value: [])
 
-            if page != 1 && !isInfiniteScroll {
-                self.middle.page.value = 1
-                self.output.searchResult.value = nil
+        let scrollGoToTop = BehaviorRelay(value: ())
+
+        // 버튼을 눌렀을 때 버튼의 텍스트를 가져와야 함
+        input.sortButtonState
+            .map { $0 ? OrderBy.relevant.rawValue : OrderBy.latest.rawValue  }
+            .bind(with: self) { owner, value in
+                sortType.accept(value)
             }
+            .disposed(by: disposeBag)
 
-            if self.validate(text) {
-                fetch(self.input.sortType.value)
+        // SearchButtonTapped랑 searchText 입력이랑 합쳐야 함
+
+
+        
+
+        Observable.combineLatest(input.searchKeyword.asObservable(),
+                                 input.currentPage.asObservable(),
+                                 sortType.asObservable(),
+                                 input.colorType.asObservable()
+        )
+            .flatMap { result in
+                SearchCustomObservable.getSearchData(api: .search(searchQuery: .init(query: result.0, page: result.1, perpage: 20, orderBy: result.2, color: result.3)))
             }
-
-            self.output.scrollGoToTop.value = ()
-        }
-
-        // TODO: 페이지네이션 예외처리 리팩토링 필요
-        input.scrollDidChangeTrigger.lazyBind { [weak self] _ in
-            guard let self else { return }
-
-            guard let totalPage else { return }
-            guard let totalCount else { return }
-            if totalPage >= self.middle.page.value, totalCount >= 21 {
-                self.middle.page.value += 1
-            }
-            print(middle.page.value)
-        }
-
-        input.sortType.bind { sortType in
-            self.middle.page.value = 1
-            self.output.searchResult.value = nil
-            self.fetch(sortType)
-            self.output.scrollGoToTop.value = ()
-        }
-
-        input.colorType.bind { colorType in
-            self.middle.page.value = 1
-            self.output.searchResult.value = nil
-            self.fetch(self.input.sortType.value)
-            self.output.scrollGoToTop.value = ()
-        }
-
-        // page를 binding하니까 page에서도 fetch가 일어남
-        middle.page.bind { page in
-            self.fetch(self.input.sortType.value, page: page)
-        }
-    }
-
-    private func validate(_ text: String?) -> Bool {
-        guard let text = text, text.trimmingCharacters(in: .whitespaces).count > 0 else {
-            output.invalidInput.value = "키워드를 입력해주세요"
-            return false
-        }
-        return true
-    }
-
-
-    //TODO: fetch 관련 구조 개선 필요. color가 없는게 default라서 있을 때는 별도로 fetch해야하는 상황
-    private func fetch(_ orderBy: String, page: Int = 1) {
-        guard let keyword = input.searchKeyword.value else { return }
-
-        isInfiniteScroll = true
-
-        let perpage = 20
-        let color = input.colorType.value
-
-        if let color {
-            networkManager.callRequest(api: .search(searchQuery: .init(query: keyword, page: page, perpage: perpage, orderBy: orderBy, color: color)), type: SearchPhoto.self) { [weak self] response in
-                guard let self else { return }
-
-                self.isInfiniteScroll = false
-
-                switch response {
+            .bind(with: self) { owner, value in
+                switch value {
                 case .success(let data):
-                    if page == 1 {
-                        self.output.searchResult.value = data
-                        self.totalPage = data.totalPages
-                        self.totalCount = data.total
-                        dump(data)
-                    } else if page >= 2 {
-                        var currentData = self.output.searchResult.value ?? .init(total: 0, totalPages: 0, results: [])
-                        currentData.results.append(contentsOf: data.results)
-                        currentData.total = data.total
-                        currentData.totalPages = data.totalPages
-                        self.output.searchResult.value = currentData
-                    }
-
+                    searchResult.accept(data.results)
                 case .failure(let error):
-                    print(error.localizedDescription)
+                    invalidInput.accept(error.localizedDescription)
                 }
             }
-        } else {
-            networkManager.callRequest(api: .search(searchQuery: .init(query: keyword, page: page, perpage: perpage, orderBy: orderBy, color: color)), type: SearchPhoto.self) { [weak self] response in
-                guard let self else { return }
+            .disposed(by: disposeBag)
 
-                self.isInfiniteScroll = false
-
-                switch response {
-                case .success(let data):
-                    if page == 1 {
-                        self.output.searchResult.value = data
-                        self.totalPage = data.totalPages
-                        self.totalCount = data.total
-                        dump(data)
-                    } else if page >= 2 {
-                        var currentData = self.output.searchResult.value ?? .init(total: 0, totalPages: 0, results: [])
-                        currentData.results.append(contentsOf: data.results)
-                        currentData.total = data.total
-                        currentData.totalPages = data.totalPages
-                        self.output.searchResult.value = currentData
-                    }
-
-                case .failure(let error):
-                    print(error.localizedDescription)
-                }
+        input.scrollDidChangeTrigger
+            .bind(with: self) { owner, _ in
+                var changedPage = state.page.value
+                changedPage += 1
+                state.page.accept(changedPage)
             }
-        }
+            .disposed(by: disposeBag)
+
+
+
+        
+
+
+        return Output(invalidInput: invalidInput, searchResult: searchResult, scrollGoToTop: scrollGoToTop)
     }
+
+//    init() {
+//
+//        input.searchKeyword.bind { [weak self] text in
+//            guard let self else { return }
+//            let page = self.middle.page.value
+//
+//            if page != 1 && !isInfiniteScroll {
+//                self.middle.page.value = 1
+//                self.output.searchResult.value = nil
+//            }
+//
+//            if self.validate(text) {
+//                fetch(self.input.sortType.value)
+//            }
+//
+//            self.output.scrollGoToTop.value = ()
+//        }
+//
+//        // TODO: 페이지네이션 예외처리 리팩토링 필요
+//        input.scrollDidChangeTrigger.lazyBind { [weak self] _ in
+//            guard let self else { return }
+//
+//            guard let totalPage else { return }
+//            guard let totalCount else { return }
+//            if totalPage >= self.middle.page.value, totalCount >= 21 {
+//                self.middle.page.value += 1
+//            }
+//            print(middle.page.value)
+//        }
+//
+//        input.sortType.bind { sortType in
+//            self.middle.page.value = 1
+//            self.output.searchResult.value = nil
+//            self.fetch(sortType)
+//            self.output.scrollGoToTop.value = ()
+//        }
+//
+//        input.colorType.bind { colorType in
+//            self.middle.page.value = 1
+//            self.output.searchResult.value = nil
+//            self.fetch(self.input.sortType.value)
+//            self.output.scrollGoToTop.value = ()
+//        }
+//
+//        // page를 binding하니까 page에서도 fetch가 일어남
+//        middle.page.bind { page in
+//            self.fetch(self.input.sortType.value, page: page)
+//        }
 }
+
+//    private func validate(_ text: String?) -> Bool {
+//        guard let text = text, text.trimmingCharacters(in: .whitespaces).count > 0 else {
+//            output.invalidInput.value = "키워드를 입력해주세요"
+//            return false
+//        }
+//        return true
+//    }
+
+
+//    //TODO: fetch 관련 구조 개선 필요. color가 없는게 default라서 있을 때는 별도로 fetch해야하는 상황
+//    private func fetch(_ orderBy: String, page: Int = 1) {
+//        guard let keyword = input.searchKeyword.value else { return }
+//
+//        isInfiniteScroll = true
+//
+//        let perpage = 20
+//        let color = input.colorType.value
+//
+//        if let color {
+//            networkManager.callRequest(api: .search(searchQuery: .init(query: keyword, page: page, perpage: perpage, orderBy: orderBy, color: color)), type: SearchPhoto.self) { [weak self] response in
+//                guard let self else { return }
+//
+//                self.isInfiniteScroll = false
+//
+//                switch response {
+//                case .success(let data):
+//                    if page == 1 {
+//                        self.output.searchResult.value = data
+//                        self.totalPage = data.totalPages
+//                        self.totalCount = data.total
+//                        dump(data)
+//                    } else if page >= 2 {
+//                        var currentData = self.output.searchResult.value ?? .init(total: 0, totalPages: 0, results: [])
+//                        currentData.results.append(contentsOf: data.results)
+//                        currentData.total = data.total
+//                        currentData.totalPages = data.totalPages
+//                        self.output.searchResult.value = currentData
+//                    }
+//
+//                case .failure(let error):
+//                    print(error.localizedDescription)
+//                }
+//            }
+//        } else {
+//            networkManager.callRequest(api: .search(searchQuery: .init(query: keyword, page: page, perpage: perpage, orderBy: orderBy, color: color)), type: SearchPhoto.self) { [weak self] response in
+//                guard let self else { return }
+//
+//                self.isInfiniteScroll = false
+//
+//                switch response {
+//                case .success(let data):
+//                    if page == 1 {
+//                        self.output.searchResult.value = data
+//                        self.totalPage = data.totalPages
+//                        self.totalCount = data.total
+//                        dump(data)
+//                    } else if page >= 2 {
+//                        var currentData = self.output.searchResult.value ?? .init(total: 0, totalPages: 0, results: [])
+//                        currentData.results.append(contentsOf: data.results)
+//                        currentData.total = data.total
+//                        currentData.totalPages = data.totalPages
+//                        self.output.searchResult.value = currentData
+//                    }
+//
+//                case .failure(let error):
+//                    print(error.localizedDescription)
+//                }
+//            }
+//        }
