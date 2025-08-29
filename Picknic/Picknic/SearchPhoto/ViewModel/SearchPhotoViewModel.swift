@@ -33,20 +33,20 @@ final class SearchPhotoViewModel {
     var totalPage: Int?
 
     struct Input {
-        var searchKeyword: Observable<String?> = Observable(value: nil)
-        var sortType: Observable<String> = Observable(value: OrderBy.relevant.rawValue)
-        var scrollDidChangeTrigger: Observable<Void?> = Observable(value: nil)
-        var colorType: Observable<String?> = Observable(value: nil)
+        var searchKeyword: MyObservable<String?> = MyObservable(value: nil)
+        var sortType: MyObservable<String> = MyObservable(value: OrderBy.relevant.rawValue)
+        var scrollDidChangeTrigger: MyObservable<Void?> = MyObservable(value: nil)
+        var colorType: MyObservable<String?> = MyObservable(value: nil)
     }
 
     struct Middle {
-        var page: Observable<Int> = Observable(value: 1)
+        var page: MyObservable<Int> = MyObservable(value: 1)
     }
 
     struct Output {
-        var invalidInput: Observable<String> = Observable(value: "")
-        var searchResult: Observable<SearchPhoto?> = Observable(value: nil)
-        var scrollGoToTop: Observable<Void?> = Observable(value: nil)
+        var invalidInput: MyObservable<String> = MyObservable(value: "")
+        var searchResult: MyObservable<SearchPhoto?> = MyObservable(value: nil)
+        var scrollGoToTop: MyObservable<Void?> = MyObservable(value: nil)
     }
 
     init() {

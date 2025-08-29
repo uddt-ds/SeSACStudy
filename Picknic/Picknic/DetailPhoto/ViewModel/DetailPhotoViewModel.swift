@@ -19,11 +19,11 @@ final class DetailPhotoViewModel {
     private let networkManager = NetworkManager.shared
 
     struct Input {
-        var photoResultData: Observable<PhotoResult?> = Observable(value: nil)
+        var photoResultData: MyObservable<PhotoResult?> = MyObservable(value: nil)
     }
 
     struct Output {
-        var statisticsData: Observable<Statistics?> = Observable(value: nil)
+        var statisticsData: MyObservable<Statistics?> = MyObservable(value: nil)
     }
 
     init(photoData: PhotoResult) {

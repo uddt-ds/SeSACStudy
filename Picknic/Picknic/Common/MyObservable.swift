@@ -7,7 +7,7 @@
 
 import Foundation
 
-final class Observable<T> {
+final class MyObservable<T> {
 
     private var action: ((T) -> Void)?
 

@@ -16,20 +16,20 @@ final class MBTIViewModel {
     private let buttonTitleArr = ButtonTitle.e.horizontalArray
 
     struct Input {
-        let textFieldValue: Observable<String?> = Observable(value: nil)
-        let textResult: Observable<String?> = Observable(value: nil)
-        let selectedMBTI: Observable<Int?> = Observable(value: nil)
-        let completedButtonTapped: Observable<Void> = Observable(value: ())
+        let textFieldValue: MyObservable<String?> = MyObservable(value: nil)
+        let textResult: MyObservable<String?> = MyObservable(value: nil)
+        let selectedMBTI: MyObservable<Int?> = MyObservable(value: nil)
+        let completedButtonTapped: MyObservable<Void> = MyObservable(value: ())
     }
 
     // 유저 이벤트랑 튜플 타입인지와 별개인거 같고 다시 생각해봐야 함
     // 모델로 정의, enum으로 정의, 튜플, 배열
     // enum case로 정의를 하고, Observable(value: enum)
     struct Output {
-        let validateLabel: Observable<String> = Observable(value: "")
-        let checkValidate: Observable<Bool> = Observable(value: false)
-        let reloadIndex: Observable<[Int]> = Observable(value: [])
-        let checkButtonState: Observable<(txtCon: Bool, btnCon: Bool)> = Observable(value: (false, false))
+        let validateLabel: MyObservable<String> = MyObservable(value: "")
+        let checkValidate: MyObservable<Bool> = MyObservable(value: false)
+        let reloadIndex: MyObservable<[Int]> = MyObservable(value: [])
+        let checkButtonState: MyObservable<(txtCon: Bool, btnCon: Bool)> = MyObservable(value: (false, false))
     }
 
     init() {

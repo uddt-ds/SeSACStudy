@@ -8,10 +8,14 @@
 import UIKit
 import SnapKit
 import SkeletonView
+import RxSwift
+import RxCocoa
 
 final class TopicVC: UIViewController, BaseViewProtocol {
 
     private let viewModel = TopicViewModel()
+
+    let disposeBag = DisposeBag()
 
     var firstTopicData: [PhotoResult] = []
     var secondTopicData: [PhotoResult] = []
@@ -43,8 +47,6 @@ final class TopicVC: UIViewController, BaseViewProtocol {
 
     private lazy var firstTopicCollectionView: UICollectionView = {
         let collectionView = UICollectionView(frame: .zero, collectionViewLayout: makeCollectionViewLayout())
-        collectionView.delegate = self
-        collectionView.dataSource = self
         collectionView.showsHorizontalScrollIndicator = false
         collectionView.register(TopicCell.self, forCellWithReuseIdentifier: TopicCell.identifier)
         return collectionView
@@ -61,8 +63,6 @@ final class TopicVC: UIViewController, BaseViewProtocol {
 
     private lazy var secondTopicCollectionView: UICollectionView = {
         let collectionView = UICollectionView(frame: .zero, collectionViewLayout: makeCollectionViewLayout())
-        collectionView.delegate = self
-        collectionView.dataSource = self
         collectionView.showsHorizontalScrollIndicator = false
         collectionView.register(TopicCell.self, forCellWithReuseIdentifier: TopicCell.identifier)
         return collectionView
@@ -79,8 +79,6 @@ final class TopicVC: UIViewController, BaseViewProtocol {
 
     private lazy var thirdTopicCollectionView: UICollectionView = {
         let collectionView = UICollectionView(frame: .zero, collectionViewLayout: makeCollectionViewLayout())
-        collectionView.delegate = self
-        collectionView.dataSource = self
         collectionView.showsHorizontalScrollIndicator = false
         collectionView.register(TopicCell.self, forCellWithReuseIdentifier: TopicCell.identifier)
         return collectionView
@@ -88,7 +86,6 @@ final class TopicVC: UIViewController, BaseViewProtocol {
 
     private lazy var scrollView: UIScrollView = {
         let scrollView = UIScrollView()
-        scrollView.delegate = self
         scrollView.showsVerticalScrollIndicator = false
         return scrollView
     }()
@@ -103,7 +100,7 @@ final class TopicVC: UIViewController, BaseViewProtocol {
         configureHierarchy()
         configureLayout()
         configureView()
-        configureSkeleton()
+//        configureSkeleton()
         setupNav()
 
         bindViewModel()
@@ -111,21 +108,54 @@ final class TopicVC: UIViewController, BaseViewProtocol {
 
     private func bindViewModel() {
         [firstTopicCollectionView, secondTopicCollectionView, thirdTopicCollectionView].forEach { $0.showGradientSkeleton() }
-        viewModel.input.viewDidLoadTrigger.value = ()
 
-        viewModel.output.totalData.bind { [weak self] data in
-            guard let self else { return }
-            self.firstTopicData = data.first
-            self.secondTopicData = data.second
-            self.thirdTopicData = data.third
+        let viewDidLoadTrigger = BehaviorSubject(value: ())
 
-            [self.firstTopicCollectionView, self.secondTopicCollectionView, self.thirdTopicCollectionView].forEach { $0.stopSkeletonAnimation()
-                $0.reloadData()
-                $0.hideSkeleton(reloadDataAfter: true, transition: .crossDissolve(1.0))
+        let input = TopicViewModel.Input(viewDidLoadTrigger: viewDidLoadTrigger)
+
+        let output = viewModel.transform(input: input)
+
+        output.firstTopicData
+            .bind(to: firstTopicCollectionView.rx.items(cellIdentifier: TopicCell.identifier, cellType: TopicCell.self)) { (row, element, cell) in
+                cell.configureCell(with: element)
             }
-//
-//            [self.firstTopicCollectionView, self.secondTopicCollectionView, self.thirdTopicCollectionView].forEach { $0.reloadData() }
-        }
+            .disposed(by: disposeBag)
+
+        output.secondTopicData
+            .bind(to: secondTopicCollectionView.rx.items(cellIdentifier: TopicCell.identifier, cellType: TopicCell.self)) { (row, element, cell) in
+                cell.configureCell(with: element)
+            }
+            .disposed(by: disposeBag)
+
+        output.thirdTopicData
+            .bind(to: thirdTopicCollectionView.rx.items(cellIdentifier: TopicCell.identifier, cellType: TopicCell.self)) { (row, element, cell) in
+                cell.configureCell(with: element)
+            }
+            .disposed(by: disposeBag)
+
+        firstTopicCollectionView.rx.modelSelected(PhotoResult.self)
+            .bind(with: self) { owner, value in
+                let viewModel = DetailPhotoViewModel(photoData: value)
+                let vc = DetailPhotoVC(viewModel: viewModel)
+                owner.navigationController?.pushViewController(vc, animated: true)
+            }
+            .disposed(by: disposeBag)
+
+        secondTopicCollectionView.rx.modelSelected(PhotoResult.self)
+            .bind(with: self) { owner, value in
+                let viewModel = DetailPhotoViewModel(photoData: value)
+                let vc = DetailPhotoVC(viewModel: viewModel)
+                owner.navigationController?.pushViewController(vc, animated: true)
+            }
+            .disposed(by: disposeBag)
+
+        thirdTopicCollectionView.rx.modelSelected(PhotoResult.self)
+            .bind(with: self) { owner, value in
+                let viewModel = DetailPhotoViewModel(photoData: value)
+                let vc = DetailPhotoVC(viewModel: viewModel)
+                owner.navigationController?.pushViewController(vc, animated: true)
+            }
+            .disposed(by: disposeBag)
     }
 
     @objc private func buttonTapped() {
@@ -244,77 +274,12 @@ extension TopicVC {
     }
 }
 
-extension TopicVC: UICollectionViewDelegate, UICollectionViewDataSource {
-    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        switch collectionView {
-        case firstTopicCollectionView:
-            return firstTopicData.count
-        case secondTopicCollectionView:
-            return secondTopicData.count
-        case thirdTopicCollectionView:
-            return thirdTopicData.count
-        default:
-            return 0
-        }
-    }
-    
-    func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        switch collectionView {
-        case firstTopicCollectionView:
-            guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: TopicCell.identifier, for: indexPath) as? TopicCell else { return .init() }
-            cell.configureCell(with: firstTopicData[indexPath.item])
-            return cell
-        case secondTopicCollectionView:
-            guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: TopicCell.identifier, for: indexPath) as? TopicCell else { return .init() }
-            cell.configureCell(with: secondTopicData[indexPath.item])
-            return cell
-        case thirdTopicCollectionView:
-            guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: TopicCell.identifier, for: indexPath) as? TopicCell else { return .init() }
-            cell.configureCell(with: thirdTopicData[indexPath.item])
-            return cell
-        default:
-            return .init()
-        }
-    }
-
-    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-        switch collectionView {
-        case firstTopicCollectionView:
-            let viewModel = DetailPhotoViewModel(photoData: firstTopicData[indexPath.item])
-            let vc = DetailPhotoVC(viewModel: viewModel)
-            navigationController?.pushViewController(vc, animated: true)
-        case secondTopicCollectionView:
-            let viewModel = DetailPhotoViewModel(photoData: secondTopicData[indexPath.item])
-            let vc = DetailPhotoVC(viewModel: viewModel)
-            navigationController?.pushViewController(vc, animated: true)
-        case thirdTopicCollectionView:
-            let viewModel = DetailPhotoViewModel(photoData: thirdTopicData[indexPath.item])
-            let vc = DetailPhotoVC(viewModel: viewModel)
-            navigationController?.pushViewController(vc, animated: true)
-        default:
-            return
-        }
-    }
-}
-
 extension TopicVC {
     private func configureSkeleton() {
         [firstTopicCollectionView, secondTopicCollectionView, thirdTopicCollectionView].forEach {
             $0.isSkeletonable = true
         }
     }
-}
-
-extension TopicVC: SkeletonCollectionViewDataSource {
-    func collectionSkeletonView(_ skeletonView: UICollectionView, cellIdentifierForItemAt indexPath: IndexPath) -> SkeletonView.ReusableCellIdentifier {
-        return TopicCell.identifier
-    }
-
-    func collectionSkeletonView(_ skeletonView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        return 10
-    }
-
-
 }
 
 extension TopicVC {

@@ -10,6 +10,8 @@
 		9B0CD0CA2E4F273F004C59CD /* Alamofire in Frameworks */ = {isa = PBXBuildFile; productRef = 9B0CD0C92E4F273F004C59CD /* Alamofire */; };
 		9B0CD0CD2E4F275B004C59CD /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 9B0CD0CB2E4F275B004C59CD /* Localizable.strings */; };
 		9B0CD15A2E4F81E8004C59CD /* Kingfisher in Frameworks */ = {isa = PBXBuildFile; productRef = 9B0CD1592E4F81E8004C59CD /* Kingfisher */; };
+		9B4028BB2E613194008C5988 /* RxCocoa in Frameworks */ = {isa = PBXBuildFile; productRef = 9B4028BA2E613194008C5988 /* RxCocoa */; };
+		9B4028BD2E613194008C5988 /* RxSwift in Frameworks */ = {isa = PBXBuildFile; productRef = 9B4028BC2E613194008C5988 /* RxSwift */; };
 		9B50877B2E4DC05600AA911B /* .gitignore in Resources */ = {isa = PBXBuildFile; fileRef = 9B50877A2E4DC05600AA911B /* .gitignore */; };
 		9B5088122E4DC9B900AA911B /* SnapKit in Frameworks */ = {isa = PBXBuildFile; productRef = 9B5088112E4DC9B900AA911B /* SnapKit */; };
 		9B853E062E5215B30073E7BA /* Toast in Frameworks */ = {isa = PBXBuildFile; productRef = 9B853E052E5215B30073E7BA /* Toast */; };
@@ -53,8 +55,10 @@
 				9B853E062E5215B30073E7BA /* Toast in Frameworks */,
 				9B0CD15A2E4F81E8004C59CD /* Kingfisher in Frameworks */,
 				9B5088122E4DC9B900AA911B /* SnapKit in Frameworks */,
+				9B4028BB2E613194008C5988 /* RxCocoa in Frameworks */,
 				9B0CD0CA2E4F273F004C59CD /* Alamofire in Frameworks */,
 				9B85423E2E53ED390073E7BA /* DGCharts in Frameworks */,
+				9B4028BD2E613194008C5988 /* RxSwift in Frameworks */,
 				9B8540E82E530D480073E7BA /* SkeletonView in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -106,6 +110,8 @@
 				9B853E052E5215B30073E7BA /* Toast */,
 				9B8540E72E530D480073E7BA /* SkeletonView */,
 				9B85423D2E53ED390073E7BA /* DGCharts */,
+				9B4028BA2E613194008C5988 /* RxCocoa */,
+				9B4028BC2E613194008C5988 /* RxSwift */,
 			);
 			productName = Picknic;
 			productReference = 9B50874F2E4DBAAB00AA911B /* Picknic.app */;
@@ -143,6 +149,7 @@
 				9B853E042E5215B30073E7BA /* XCRemoteSwiftPackageReference "Toast-Swift" */,
 				9B8540E62E530D480073E7BA /* XCRemoteSwiftPackageReference "SkeletonView" */,
 				9B85423C2E53ED390073E7BA /* XCRemoteSwiftPackageReference "Charts" */,
+				9B4028B92E613194008C5988 /* XCRemoteSwiftPackageReference "RxSwift" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 9B5087502E4DBAAB00AA911B /* Products */;
@@ -420,6 +427,14 @@
 				minimumVersion = 8.5.0;
 			};
 		};
+		9B4028B92E613194008C5988 /* XCRemoteSwiftPackageReference "RxSwift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/ReactiveX/RxSwift.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 6.9.0;
+			};
+		};
 		9B5088102E4DC9B900AA911B /* XCRemoteSwiftPackageReference "SnapKit" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/SnapKit/SnapKit";
@@ -464,6 +479,16 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 9B0CD1582E4F81E8004C59CD /* XCRemoteSwiftPackageReference "Kingfisher" */;
 			productName = Kingfisher;
+		};
+		9B4028BA2E613194008C5988 /* RxCocoa */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9B4028B92E613194008C5988 /* XCRemoteSwiftPackageReference "RxSwift" */;
+			productName = RxCocoa;
+		};
+		9B4028BC2E613194008C5988 /* RxSwift */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9B4028B92E613194008C5988 /* XCRemoteSwiftPackageReference "RxSwift" */;
+			productName = RxSwift;
 		};
 		9B5088112E4DC9B900AA911B /* SnapKit */ = {
 			isa = XCSwiftPackageProductDependency;
