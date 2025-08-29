@@ -113,6 +113,10 @@ final class SearchPhotoVC: UIViewController, BaseViewProtocol {
                 cell.configureCell(with: element)
             }
             .disposed(by: disposeBag)
+
+        output.phLabelShouldHidden
+            .bind(to: phLabel.rx.isHidden)
+            .disposed(by: disposeBag)
     }
 
     private func sortButtonToggle() {

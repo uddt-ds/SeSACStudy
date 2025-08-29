@@ -33,6 +33,7 @@ final class SearchPhotoViewModel {
         var invalidInput: BehaviorRelay<String>
         var searchResult: BehaviorRelay<[PhotoResult]>
         var scrollGoToTop: BehaviorRelay<Void>
+        var phLabelShouldHidden: PublishRelay<Bool>
     }
 
     var isInfiniteScroll = false
@@ -52,6 +53,8 @@ final class SearchPhotoViewModel {
 
         let scrollGoToTop = BehaviorRelay(value: ())
 
+        let noticeLabelShouldHidden = PublishRelay<Bool>()
+
         // 버튼을 눌렀을 때 버튼의 텍스트를 가져와야 함
         input.sortButtonState
             .map { $0 ? OrderBy.relevant.rawValue : OrderBy.latest.rawValue  }
@@ -62,8 +65,6 @@ final class SearchPhotoViewModel {
 
         // SearchButtonTapped랑 searchText 입력이랑 합쳐야 함
 
-
-        
 
         Observable.combineLatest(input.searchKeyword.asObservable(),
                                  input.currentPage.asObservable(),
@@ -77,6 +78,7 @@ final class SearchPhotoViewModel {
                 switch value {
                 case .success(let data):
                     searchResult.accept(data.results)
+                    noticeLabelShouldHidden.accept(true)
                 case .failure(let error):
                     invalidInput.accept(error.localizedDescription)
                 }
@@ -91,12 +93,7 @@ final class SearchPhotoViewModel {
             }
             .disposed(by: disposeBag)
 
-
-
-        
-
-
-        return Output(invalidInput: invalidInput, searchResult: searchResult, scrollGoToTop: scrollGoToTop)
+        return Output(invalidInput: invalidInput, searchResult: searchResult, scrollGoToTop: scrollGoToTop, phLabelShouldHidden: noticeLabelShouldHidden)
     }
 
 //    init() {
