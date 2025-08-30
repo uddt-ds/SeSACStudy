@@ -14,10 +14,10 @@ struct TopicQuery {
 }
 
 struct SearchQuery {
-    let query: String
+    let query: String?
     let page: Int
     let perpage: Int
-    let orderBy: String
+    let orderBy: String?
     let color: String?
 }
 

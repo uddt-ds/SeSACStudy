@@ -17,11 +17,10 @@ final class SearchPhotoViewModel {
     let disposeBag = DisposeBag()
 
     struct Input {
-        var searchKeyword: BehaviorSubject<String>
+        var searchKeyword: BehaviorSubject<String?>
         var sortButtonState: Observable<Bool>
-        var colorType: BehaviorSubject<String>
+        var colorType:  BehaviorSubject<String?>
         var scrollDidChangeTrigger: PublishRelay<Void>
-        var currentPage: BehaviorSubject<Int>
     }
 
     struct State {
@@ -47,7 +46,7 @@ final class SearchPhotoViewModel {
 
         let state = State(page: .init(value: 1))
 
-        let sortType = BehaviorRelay<String>(value: "")
+        let sortType = BehaviorRelay<String?>(value: nil)
 
         let searchResult = BehaviorRelay<[PhotoResult]>(value: [])
 
@@ -64,14 +63,18 @@ final class SearchPhotoViewModel {
             }
             .disposed(by: disposeBag)
 
+        // 다른 버튼 누르면, 검색어를 다 비워야하는 로직 추가가 필요함
+        // 묶어놨는데 얘를 어떻게 처리할지 고민해봐야 함
         Observable.combineLatest(input.searchKeyword.asObservable(),
                                  state.page.asObservable(),
                                  sortType.asObservable(),
                                  input.colorType.asObservable()
         )
+        .debug()
             .flatMap { result in
                 SearchCustomObservable.getSearchData(api: .search(searchQuery: .init(query: result.0, page: result.1, perpage: 20, orderBy: result.2, color: result.3)))
             }
+            .debug()
             .bind(with: self) { owner, value in
                 switch value {
                 case .success(let data):

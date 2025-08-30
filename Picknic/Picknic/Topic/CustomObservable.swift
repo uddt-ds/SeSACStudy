@@ -23,7 +23,6 @@ final class CustomObservable {
                         switch responseData.result {
                         case .success(let data):
                             value.onNext(.success(data))
-                            print(data)
                             value.onCompleted()
                         case .failure(let error):
                             value.onNext(.failure(.invalidURL))

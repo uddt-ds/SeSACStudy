@@ -78,25 +78,24 @@ final class SearchPhotoVC: UIViewController, BaseViewProtocol, UICollectionViewD
     private func bind() {
 
         // 수평 컬렉션뷰 선택된 애의 값이 colorType에 들어가야함
-        let currentPage = BehaviorSubject(value: 1)
-        let colorType = BehaviorSubject(value: "")
+        let colorType = BehaviorSubject<String?>(value: nil)
 
-        let searchText = BehaviorSubject(value: "")
+        let searchText = BehaviorSubject<String?>(value: "")
 
         searchController.searchBar.rx.searchButtonClicked
             .withLatestFrom(searchController.searchBar.rx.text.orEmpty)
+            .debug()
             .bind(with: self) { owner, value in
                 searchText.onNext(value)
             }
             .disposed(by: disposeBag)
 
-        let input = SearchPhotoViewModel.Input(searchKeyword: searchText, sortButtonState: sortButton.rx.buttonState, colorType: colorType, scrollDidChangeTrigger: scrollDidChangeTrigger, currentPage: currentPage)
+        let input = SearchPhotoViewModel.Input(searchKeyword: searchText, sortButtonState: sortButton.rx.buttonState, colorType: colorType, scrollDidChangeTrigger: scrollDidChangeTrigger)
 
         let output = viewModel.transform(input: input)
 
         output.colorButtonData
             .bind(to: buttonCollectionView.rx.items(cellIdentifier: ColorButtonCell.identifier, cellType: ColorButtonCell.self)) { row, element, cell in
-                print(element)
                 cell.configureButton(with: element)
             }
             .disposed(by: disposeBag)
@@ -253,8 +252,6 @@ extension SearchPhotoVC {
 
         let cellHeight = (deviceHeight - (quantity.lineSpacing.value * 2)) / 2.5
         let cellWidth = (deviceWidth - (quantity.itemSpacing.value)) / 2
-        print(cellHeight)
-        print(cellWidth)
 
         layout.itemSize = .init(width: cellWidth, height: cellHeight)
 
