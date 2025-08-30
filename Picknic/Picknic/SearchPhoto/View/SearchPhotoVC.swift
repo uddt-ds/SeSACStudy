@@ -11,7 +11,7 @@ import Toast
 import RxSwift
 import RxCocoa
 
-final class SearchPhotoVC: UIViewController, BaseViewProtocol {
+final class SearchPhotoVC: UIViewController, BaseViewProtocol, UICollectionViewDelegate {
 
     private let searchController = UISearchController()
 
@@ -42,7 +42,7 @@ final class SearchPhotoVC: UIViewController, BaseViewProtocol {
     private lazy var photoCollectionView: UICollectionView = {
         let view = UICollectionView(frame: .zero, collectionViewLayout: self.makePhotoCollectionViewLayout())
 //        view.dataSource = self
-//        view.delegate = self
+        view.delegate = self
         view.register(PhotoResultCell.self, forCellWithReuseIdentifier: PhotoResultCell.identifier)
         view.showsVerticalScrollIndicator = false
         return view

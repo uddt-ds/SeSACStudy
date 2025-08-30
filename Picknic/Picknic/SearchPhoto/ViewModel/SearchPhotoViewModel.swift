@@ -53,9 +53,10 @@ final class SearchPhotoViewModel {
 
         let scrollGoToTop = BehaviorRelay(value: ())
 
+        var totalData: [PhotoResult] = []
+
         let noticeLabelShouldHidden = PublishRelay<Bool>()
 
-        // 버튼을 눌렀을 때 버튼의 텍스트를 가져와야 함
         input.sortButtonState
             .map { $0 ? OrderBy.relevant.rawValue : OrderBy.latest.rawValue  }
             .bind(with: self) { owner, value in
@@ -63,11 +64,8 @@ final class SearchPhotoViewModel {
             }
             .disposed(by: disposeBag)
 
-        // SearchButtonTapped랑 searchText 입력이랑 합쳐야 함
-
-
         Observable.combineLatest(input.searchKeyword.asObservable(),
-                                 input.currentPage.asObservable(),
+                                 state.page.asObservable(),
                                  sortType.asObservable(),
                                  input.colorType.asObservable()
         )
@@ -77,7 +75,8 @@ final class SearchPhotoViewModel {
             .bind(with: self) { owner, value in
                 switch value {
                 case .success(let data):
-                    searchResult.accept(data.results)
+                    totalData.append(contentsOf: data.results)
+                    searchResult.accept(totalData)
                     noticeLabelShouldHidden.accept(true)
                 case .failure(let error):
                     invalidInput.accept(error.localizedDescription)
