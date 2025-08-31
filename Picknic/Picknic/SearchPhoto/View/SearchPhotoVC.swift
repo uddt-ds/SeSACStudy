@@ -27,6 +27,8 @@ final class SearchPhotoVC: UIViewController, BaseViewProtocol, UICollectionViewD
 
     private let scrollDidChangeTrigger = PublishRelay<Void>()
 
+    private let selectedButtonIndex: BehaviorRelay<IndexPath?> = BehaviorRelay(value: nil)
+
     private lazy var buttonCollectionView: UICollectionView = {
         let view = UICollectionView(frame: .zero, collectionViewLayout: self.makeButtonCollectinoViewLayout())
         view.register(ColorButtonCell.self, forCellWithReuseIdentifier: ColorButtonCell.identifier)
@@ -77,7 +79,6 @@ final class SearchPhotoVC: UIViewController, BaseViewProtocol, UICollectionViewD
 
     private func bind() {
 
-        // 수평 컬렉션뷰 선택된 애의 값이 colorType에 들어가야함
         let colorType = BehaviorSubject<String?>(value: nil)
 
         let searchText = BehaviorSubject<String?>(value: nil)
@@ -101,12 +102,42 @@ final class SearchPhotoVC: UIViewController, BaseViewProtocol, UICollectionViewD
             }
             .disposed(by: disposeBag)
 
+
+        buttonCollectionView.rx.itemSelected
+            .bind(with: self) { owner, indexPath in
+                let previousButtonIndex = owner.selectedButtonIndex.value
+
+                if let previousIndex = previousButtonIndex, previousIndex != indexPath {
+                    if let cell = owner.buttonCollectionView.cellForItem(at: previousIndex) as? ColorButtonCell {
+                        cell.selectedButton(isSelected: false)
+                    }
+
+                    if let cell = owner.buttonCollectionView.cellForItem(at: indexPath) as? ColorButtonCell {
+                        cell.selectedButton(isSelected: true)
+                    }
+                }
+
+                if let previousIndex = previousButtonIndex, previousIndex == indexPath {
+                    if let cell = owner.buttonCollectionView.cellForItem(at: previousIndex) as? ColorButtonCell {
+                        cell.selectedButton(isSelected: false)
+                    }
+                }
+
+                if previousButtonIndex == nil {
+                    if let cell = owner.buttonCollectionView.cellForItem(at: indexPath) as? ColorButtonCell {
+                        cell.selectedButton(isSelected: true)
+                    }
+                }
+                owner.selectedButtonIndex.accept(indexPath)
+            }
+            .disposed(by: disposeBag)
+
         buttonCollectionView.rx.modelSelected(ColorSet.self)
             .bind(with: self) { owner, value in
                 colorType.onNext(value.rawValue)
-                print(value.rawValue)
             }
             .disposed(by: disposeBag)
+
 
         output.searchResult
             .bind(to: photoCollectionView.rx.items(cellIdentifier: PhotoResultCell.identifier, cellType: PhotoResultCell.self)) { row, element, cell in
@@ -131,14 +162,6 @@ final class SearchPhotoVC: UIViewController, BaseViewProtocol, UICollectionViewD
         sortButton.isSelected.toggle()
     }
 
-//        viewModel.output.scrollGoToTop.lazyBind { [weak self] _ in
-//            guard let self else { return }
-//            if searchPhotoData.results.count != 0 {
-//                self.photoCollectionView.scrollToItem(at: IndexPath(item: 0, section: 0), at: .top, animated: true)
-//            }
-//        }
-//    }
-
     private func addObserverNotificationCenter() {
         NotificationCenter.default.addObserver(self,
                                                selector: #selector(valueChanged),
@@ -146,8 +169,6 @@ final class SearchPhotoVC: UIViewController, BaseViewProtocol, UICollectionViewD
                                                object: nil)
     }
 
-    // result도 없고, searchButton도 눌렀으면 "검색 결과가 없어요"
-    // result만 없으면 검색어를 입력해주세요
     private func showPlaceHolderLabel() {
         if searchPhotoData.results.count == 0 {
             phLabel.text = "검색 결과가 없어요"
@@ -174,7 +195,6 @@ extension SearchPhotoVC {
     private func setupSearchController() {
         searchController.searchBar.placeholder = "키워드 검색"
         searchController.automaticallyShowsCancelButton = false
-//        searchController.searchBar.delegate = self
         searchController.hidesNavigationBarDuringPresentation = false
         self.navigationItem.searchController = searchController
     }
