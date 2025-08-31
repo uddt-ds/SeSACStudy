@@ -80,10 +80,11 @@ final class SearchPhotoVC: UIViewController, BaseViewProtocol, UICollectionViewD
         // 수평 컬렉션뷰 선택된 애의 값이 colorType에 들어가야함
         let colorType = BehaviorSubject<String?>(value: nil)
 
-        let searchText = BehaviorSubject<String?>(value: "")
+        let searchText = BehaviorSubject<String?>(value: nil)
 
         searchController.searchBar.rx.searchButtonClicked
-            .withLatestFrom(searchController.searchBar.rx.text.orEmpty)
+            .withLatestFrom(searchController.searchBar.rx.text)
+            .distinctUntilChanged()
             .debug()
             .bind(with: self) { owner, value in
                 searchText.onNext(value)
@@ -119,7 +120,9 @@ final class SearchPhotoVC: UIViewController, BaseViewProtocol, UICollectionViewD
 
         output.scrollGoToTop
             .bind(with: self) { owner, _ in
-                owner.photoCollectionView.scrollToItem(at: IndexPath(item: 0, section: 0), at: .top, animated: true)
+                DispatchQueue.main.async {
+                    owner.photoCollectionView.scrollToItem(at: IndexPath(item: 0, section: 0), at: .top, animated: true)
+                }
             }
             .disposed(by: disposeBag)
     }
