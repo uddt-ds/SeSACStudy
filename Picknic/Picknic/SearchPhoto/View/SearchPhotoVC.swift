@@ -116,6 +116,12 @@ final class SearchPhotoVC: UIViewController, BaseViewProtocol, UICollectionViewD
         output.phLabelShouldHidden
             .bind(to: phLabel.rx.isHidden)
             .disposed(by: disposeBag)
+
+        output.scrollGoToTop
+            .bind(with: self) { owner, _ in
+                owner.photoCollectionView.scrollToItem(at: IndexPath(item: 0, section: 0), at: .top, animated: true)
+            }
+            .disposed(by: disposeBag)
     }
 
     private func sortButtonToggle() {

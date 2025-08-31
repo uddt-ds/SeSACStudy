@@ -10,6 +10,7 @@ import Alamofire
 import RxSwift
 import RxCocoa
 
+//TODO: 페이지네이션 방어로직 구현 필요
 final class SearchPhotoViewModel {
 
     private let networkManager = NetworkManager.shared
@@ -30,8 +31,8 @@ final class SearchPhotoViewModel {
     struct Output {
         var colorButtonData = BehaviorRelay(value: ColorSet.allCases)
         var invalidInput: BehaviorRelay<String>
-        var searchResult: BehaviorRelay<[PhotoResult]>
-        var scrollGoToTop: BehaviorRelay<Void>
+        var searchResult: PublishRelay<[PhotoResult]>
+        var scrollGoToTop: PublishRelay<Void>
         var phLabelShouldHidden: PublishRelay<Bool>
     }
 
@@ -48,13 +49,22 @@ final class SearchPhotoViewModel {
 
         let sortType = BehaviorRelay<String?>(value: nil)
 
-        let searchResult = BehaviorRelay<[PhotoResult]>(value: [])
+        let searchResult = PublishRelay<[PhotoResult]>()
 
-        let scrollGoToTop = BehaviorRelay(value: ())
+        let scrollGoToTop = PublishRelay<Void>()
 
         var totalData: [PhotoResult] = []
+        print(totalData)
 
         let noticeLabelShouldHidden = PublishRelay<Bool>()
+
+        input.colorType
+            .bind(with: self) { owner, _ in
+                totalData = []
+                scrollGoToTop.accept(())
+                state.page.accept(1)
+            }
+            .disposed(by: disposeBag)
 
         input.sortButtonState
             .map { $0 ? OrderBy.relevant.rawValue : OrderBy.latest.rawValue  }
@@ -63,8 +73,6 @@ final class SearchPhotoViewModel {
             }
             .disposed(by: disposeBag)
 
-        // 다른 버튼 누르면, 검색어를 다 비워야하는 로직 추가가 필요함
-        // 묶어놨는데 얘를 어떻게 처리할지 고민해봐야 함
         Observable.combineLatest(input.searchKeyword.asObservable(),
                                  state.page.asObservable(),
                                  sortType.asObservable(),
@@ -72,13 +80,17 @@ final class SearchPhotoViewModel {
         )
         .debug()
             .flatMap { result in
-                SearchCustomObservable.getSearchData(api: .search(searchQuery: .init(query: result.0, page: result.1, perpage: 20, orderBy: result.2, color: result.3)))
+                return SearchCustomObservable.getSearchData(api: .search(searchQuery: .init(query: result.0, page: result.1, perpage: 20, orderBy: result.2, color: result.3)))
             }
             .debug()
             .bind(with: self) { owner, value in
                 switch value {
                 case .success(let data):
-                    totalData.append(contentsOf: data.results)
+                    if state.page.value == 1 {
+                        totalData = data.results
+                    } else {
+                        totalData.append(contentsOf: data.results)
+                    }
                     searchResult.accept(totalData)
                     noticeLabelShouldHidden.accept(true)
                 case .failure(let error):
@@ -155,65 +167,3 @@ final class SearchPhotoViewModel {
 //        }
 //        return true
 //    }
-
-
-//    //TODO: fetch 관련 구조 개선 필요. color가 없는게 default라서 있을 때는 별도로 fetch해야하는 상황
-//    private func fetch(_ orderBy: String, page: Int = 1) {
-//        guard let keyword = input.searchKeyword.value else { return }
-//
-//        isInfiniteScroll = true
-//
-//        let perpage = 20
-//        let color = input.colorType.value
-//
-//        if let color {
-//            networkManager.callRequest(api: .search(searchQuery: .init(query: keyword, page: page, perpage: perpage, orderBy: orderBy, color: color)), type: SearchPhoto.self) { [weak self] response in
-//                guard let self else { return }
-//
-//                self.isInfiniteScroll = false
-//
-//                switch response {
-//                case .success(let data):
-//                    if page == 1 {
-//                        self.output.searchResult.value = data
-//                        self.totalPage = data.totalPages
-//                        self.totalCount = data.total
-//                        dump(data)
-//                    } else if page >= 2 {
-//                        var currentData = self.output.searchResult.value ?? .init(total: 0, totalPages: 0, results: [])
-//                        currentData.results.append(contentsOf: data.results)
-//                        currentData.total = data.total
-//                        currentData.totalPages = data.totalPages
-//                        self.output.searchResult.value = currentData
-//                    }
-//
-//                case .failure(let error):
-//                    print(error.localizedDescription)
-//                }
-//            }
-//        } else {
-//            networkManager.callRequest(api: .search(searchQuery: .init(query: keyword, page: page, perpage: perpage, orderBy: orderBy, color: color)), type: SearchPhoto.self) { [weak self] response in
-//                guard let self else { return }
-//
-//                self.isInfiniteScroll = false
-//
-//                switch response {
-//                case .success(let data):
-//                    if page == 1 {
-//                        self.output.searchResult.value = data
-//                        self.totalPage = data.totalPages
-//                        self.totalCount = data.total
-//                        dump(data)
-//                    } else if page >= 2 {
-//                        var currentData = self.output.searchResult.value ?? .init(total: 0, totalPages: 0, results: [])
-//                        currentData.results.append(contentsOf: data.results)
-//                        currentData.total = data.total
-//                        currentData.totalPages = data.totalPages
-//                        self.output.searchResult.value = currentData
-//                    }
-//
-//                case .failure(let error):
-//                    print(error.localizedDescription)
-//                }
-//            }
-//        }
