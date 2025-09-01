@@ -29,6 +29,8 @@ final class SearchPhotoVC: UIViewController, BaseViewProtocol, UICollectionViewD
 
     private let selectedButtonIndex: BehaviorRelay<IndexPath?> = BehaviorRelay(value: nil)
 
+    private let selectedModel: BehaviorRelay<ColorSet?> = BehaviorRelay(value: nil)
+
     private lazy var buttonCollectionView: UICollectionView = {
         let view = UICollectionView(frame: .zero, collectionViewLayout: self.makeButtonCollectinoViewLayout())
         view.register(ColorButtonCell.self, forCellWithReuseIdentifier: ColorButtonCell.identifier)
@@ -134,7 +136,15 @@ final class SearchPhotoVC: UIViewController, BaseViewProtocol, UICollectionViewD
 
         buttonCollectionView.rx.modelSelected(ColorSet.self)
             .bind(with: self) { owner, value in
-                colorType.onNext(value.rawValue)
+                if owner.selectedModel.value == nil {
+                    owner.selectedModel.accept(value)
+                    colorType.onNext(value.rawValue)
+                } else {
+                    if let previousModel = owner.selectedModel.value, previousModel.rawValue == value.rawValue {
+                        owner.selectedModel.accept(nil)
+                        colorType.onNext(nil)
+                    }
+                }
             }
             .disposed(by: disposeBag)
 
